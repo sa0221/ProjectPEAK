@@ -1,5 +1,56 @@
 
-# SIGINT Collection IoT System - Technical Report
+# Project PEAK
+
+## Codebase Information
+
+### Project PEAK (Positioning and Emanation Analysis for Key Targets)
+
+Project PEAK (Positioning and Emanation Analysis for Key Targets) aims to design a distributed IoT system capable of intercepting, analyzing, and triangulating electromagnetic signals across a range of communication protocols (e.g., Wi-Fi, Bluetooth, 5G). The system tracks and identifies devices such as UAVs, vehicles, and other electronic systems within a defined space.
+
+### Code Breakdown
+```
+project_peak/
+│
+├── src/
+│   ├── __init__.py
+│   ├── lora_communication/
+│   │   ├── __init__.py
+│   │   ├── lora_config.py
+│   │   ├── lora_sender.py
+│   │   └── lora_receiver.py
+│   ├── data_fusion/
+│   │   ├── __init__.py
+│   │   └── fusion.py
+│   ├── triangulation/
+│   │   ├── __init__.py
+│   │   └── triangulate.py
+│   ├── signal_processing/
+│   │   ├── __init__.py
+│   │   └── signal_detector.py
+│   ├── protocol/
+│   │   ├── __init__.py
+│   │   ├── packet_builder.py
+│   │   └── packet_handler.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── data_structures.py
+│       └── constants.py
+│
+├── examples/
+│   ├── __init__.py
+│   ├── lora_node.py
+│   └── central_node.py
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_lora.py
+│   ├── test_fusion.py
+│   ├── test_triangulation.py
+│   └── test_signal_processing.py
+│
+├── requirements.txt
+└── README.md
+```
 
 ## 1. Objective
 
