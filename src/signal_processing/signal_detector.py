@@ -3,6 +3,8 @@
 import time
 import numpy as np
 from rtlsdr import RtlSdr
+from scapy.all import *
+
 
 class SignalDetector:
     """
@@ -71,3 +73,9 @@ class SignalDetector:
         Close the SDR device.
         """
         self.sdr.close()
+
+
+#WIFI SIGNAL ANALYSIS / SNIFFING
+
+def packet_capture(pkt):
+    print('Source IP: '+ pkt[IP].src + 'Destination IP: ' + pkt[IP].dst)
