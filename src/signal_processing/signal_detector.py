@@ -81,20 +81,24 @@ class SignalDetector:
 
 
 #WIFI SIGNAL ANALYSIS / SNIFFING
+#Found trackerjacker library, could be very useful
+#Below code sniffs packets and analyzes them, returning detected WiFi networks including
+#information such as MAC Address, Name, # of Channels, Signal Strength
 
 if sys.version_info < (3, 0):
     sys.stderr.write("\nYou need python 3.0 or later to run this script\n")
     sys.stderr.write("Please update and make sure you use the command python3 wifi_scanner.py <interface>\n\n")
     sys.exit(0)
 
-networks = pd.DataFrame(columns=["BSSID", "SSID", "dBm_Signal", "Channel", "Encryption"])
+networks = pd.DataFrame(columns=["BSSID", "SSID", "dBm_Signal", "Source", "Destination", "Channel", "Encryption"])
 networks.set_index("BSSID", inplace=True)
-
 
 def process_packet(packet):
     """this function get executed whenever a packet is sniffed to process it"""
     if packet.haslayer(Dot11Beacon):
         bssid = packet[Dot11].addr2  # get the MAC addresses of the networks
+        source = packet[Dot11].src #Get source IP address
+        dest = packet[Dot11].dst #Get destination IP address
         ssid = str(packet[Dot11Elt].info, encoding="UTF-8")  # get the name of the networks
         ssid = "<Hidden>" if ssid == "" else str(packet[Dot11Elt].info, encoding="UTF-8")  # check if the network
         # doesn't broadcast its name (ternary operator)
@@ -104,8 +108,7 @@ def process_packet(packet):
         channel = stats.get("channel")  # get the channel number of the networks
         enc = stats.get("crypto")  # get the encryption of the networks
 
-        networks.loc[bssid] = (ssid, dbm_signal, channel, enc)  # putting all together
-
+        networks.loc[bssid] = (ssid, dbm_signal, source, dest, channel, enc)  # putting all together
 
 def print_networks():
     """this function clear terminal every 0.7s and print wi-fi networks again"""
