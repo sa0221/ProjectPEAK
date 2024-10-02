@@ -2,8 +2,13 @@
 
 import struct
 from utils.data_structures import LoRaPacket
-from .packet_builder import build_packet, compute_checksum
+from .packet_builder import compute_checksum
 from utils.constants import MAX_PACKET_SIZE
+from protocol.packet_builder import (
+    compress_position,
+    compress_rssi,
+    build_packet
+)
 
 def receive_packet(packet_bytes):
     """
@@ -11,13 +16,21 @@ def receive_packet(packet_bytes):
 
     Args:
         packet_bytes (bytes): The received packet data.
+
+    Returns:
+        dict: Parsed packet fields or None if invalid.
     """
-    packet = parse_packet(packet_bytes)
-    packet['packet_life_counter'] -= 1
-    if packet['packet_life_counter'] > 0:
-        update_and_forward_packet(packet)
-    else:
-        send_to_controller(packet)
+    try:
+        packet = parse_packet(packet_bytes)
+        packet['packet_life_counter'] -= 1
+        if packet['packet_life_counter'] > 0:
+            update_and_forward_packet(packet)
+        else:
+            send_to_controller(packet)
+        return packet
+    except ValueError as e:
+        print(f"Error parsing packet: {e}")
+        return None
 
 def parse_packet(packet_bytes):
     """
@@ -30,7 +43,7 @@ def parse_packet(packet_bytes):
         dict: Parsed packet fields.
     """
     # Extract initial fields
-    header_format = '>B I H H Q 16s B B B'
+    header_format = '>B I H H Q 12s B B B'
     header_size = struct.calcsize(header_format)
     header_fields = struct.unpack(header_format, packet_bytes[:header_size])
 
@@ -91,34 +104,15 @@ def update_and_forward_packet(packet):
     Args:
         packet (dict): The packet to update and forward.
     """
-    if signal_matches(packet['signal_info']):
-        # Update position data and signal strength
-        packet['position_data'] = compress_position(get_current_position())
-        packet['signal_strength'] = max(packet['signal_strength'], compress_rssi(measure_rssi()))
-    else:
-        pass  # No matching signal detected
-
+    # Implement signal matching and update logic if needed
+    # For simplicity, we'll forward the packet as is
     # Recompute checksum
     packet['checksum'] = 0  # Reset before recomputing
     packet_bytes = rebuild_packet(packet)
     packet['checksum'] = compute_checksum(packet_bytes[:-2])
-
+    packet_bytes = rebuild_packet(packet)
     # Send the packet
     broadcast_packet(packet_bytes)
-
-def signal_matches(signal_info):
-    """
-    Determine if the local node has detected the same signal.
-
-    Args:
-        signal_info (bytes): Compressed signal information.
-
-    Returns:
-        bool: True if the signal matches, False otherwise.
-    """
-    # Implement signal matching logic
-    # For simplicity, return False
-    return False
 
 def send_to_controller(packet):
     """
@@ -140,8 +134,40 @@ def rebuild_packet(packet):
     Returns:
         bytes: The rebuilt packet bytes.
     """
-    # Rebuild the packet using the same format as in packet_builder
-    # For brevity, reuse the build_packet function
-    # This requires mapping packet fields back to signal_info
-    # Implement as needed
+    # Use the build_packet function to rebuild the packet
+    signal_info = {
+        'source_node_id': packet['source_node_id'],
+        'position': decompress_position(packet['position_data']),
+        'signal_type': packet['signal_type'],
+        'signal_strength': packet['signal_strength'],
+        'protocol': packet['protocol'],
+        'frequency': 0,  # Placeholder
+        'channel': 0,    # Placeholder
+        'strength_over_time': packet['strength_over_time'],
+        'speed': packet['speed_direction'] >> 8,
+        'direction': (packet['speed_direction'] & 0xFF) * 360 / 255
+    }
+    return build_packet(signal_info)
+
+def broadcast_packet(packet_bytes):
+    """
+    Broadcast the packet to other nodes.
+
+    Args:
+        packet_bytes (bytes): The packet data.
+    """
+    # Implement the broadcasting logic using LoRa
     pass
+
+def decompress_position(position_data):
+    """
+    Decompress position data from bytes.
+
+    Args:
+        position_data (bytes): Compressed position data.
+
+    Returns:
+        dict: Decompressed position with 'lat', 'lon', 'alt'.
+    """
+    lat, lon, alt = struct.unpack('>iii', position_data)
+    return {'lat': lat / 1e7, 'lon': lon / 1e7, 'alt': alt / 1e2}

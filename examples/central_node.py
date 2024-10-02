@@ -28,26 +28,25 @@ def main():
             if receiver.get_irq_flags()['rx_done']:
                 packet_bytes = receiver.read_payload(nocheck=True)
                 # Handle the packet
-                receive_packet(packet_bytes)
-                # For demonstration, we parse the packet and collect data
-                packet = parse_packet(packet_bytes)
-                received_packets.append(packet)
-                print(f"Received packet from node {packet['source_node_id']}")
-                # Process when enough packets are collected
-                if len(received_packets) >= 3:
-                    fused_data = fuse_data_from_nodes([p['signal_info'] for p in received_packets])
-                    print(f"Fused data: {fused_data}")
-                    distances = [100 - p['signal_strength'] for p in received_packets]  # Example distance estimation
-                    positions = [node_positions[p['source_node_id']] for p in received_packets]
-                    try:
-                        position = triangulate_position(
-                            [(pos.x, pos.y) for pos in positions],
-                            distances
-                        )
-                        print(f"Estimated position: {position}")
-                    except ValueError as e:
-                        print(f"Triangulation error: {e}")
-                    received_packets = []
+                packet = receive_packet(packet_bytes)
+                if packet:
+                    received_packets.append(packet)
+                    print(f"Received packet from node {packet['source_node_id']}")
+                    # Process when enough packets are collected
+                    if len(received_packets) >= 3:
+                        fused_data = fuse_data_from_nodes([p['signal_info'] for p in received_packets])
+                        print(f"Fused data: {fused_data}")
+                        distances = [100 - p['signal_strength'] for p in received_packets]  # Example distance estimation
+                        positions = [node_positions[p['source_node_id']] for p in received_packets]
+                        try:
+                            position = triangulate_position(
+                                [(pos.x, pos.y) for pos in positions],
+                                distances
+                            )
+                            print(f"Estimated position: {position}")
+                        except ValueError as e:
+                            print(f"Triangulation error: {e}")
+                        received_packets = []
                 # Continue receiving
                 receiver.set_mode(MODE.RXCONT)
             time.sleep(0.1)
