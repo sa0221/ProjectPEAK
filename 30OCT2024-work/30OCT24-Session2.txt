@@ -1,0 +1,336 @@
+ ~/U/sigint  sudo apt install hackrf python3-numpy python3-scapy
+
+hackrf is already the newest version (2024.02.1-2).
+python3-numpy is already the newest version (1:1.26.4+ds-11).
+python3-numpy set to manually installed.
+python3-scapy is already the newest version (2.5.0+git20240324.2b58b51+dfsg-2).
+python3-scapy set to manually installed.
+Summary:
+  Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 144
+ ~/U/sigint  nano hackrf_peak.py             419ms  Wed Oct 30 10:32:34 2024
+ ~/U/sigint  sudo python3 hackrf_peak.py     10.8s  Wed Oct 30 10:33:05 2024
+
+[*] Starting Project PEAK signal collection...
+[*] Scanning frequency range 2400.0 MHz to 2500.0 MHz...
+[*] Capturing 5 seconds at 2400.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2400000000 Hz/2400.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.7 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2410.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2410000000 Hz/2410.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.6 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2420.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2420000000 Hz/2420.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.6 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2430.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2430000000 Hz/2430.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.4 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.0 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.5 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2440.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2440000000 Hz/2440.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.5 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2450.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2450000000 Hz/2450.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.2 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -33.2 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.9 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2460.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2460000000 Hz/2460.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.4 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.4 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.4 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.4 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2470.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2470000000 Hz/2470.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -33.9 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.0 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2480.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2480000000 Hz/2480.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.2 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.2 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.3 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.4 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2490.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2490000000 Hz/2490.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.7 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2500.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2500000000 Hz/2500.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.7 dBfs
+[!] HackRF capture timed out.
+[*] Signal collection complete. Check 'project_peak_signals.txt' for results.
+ ~/U/sigint  cat project_peak_signals.txt    55.1s  Wed Oct 30 10:34:17 2024
+2024-10-30 10:33:22 - === Signal Collection Start ===
+2024-10-30 10:34:17 - === Signal Collection End ===
+ ~/U/sigint  lsusb                                   Wed Oct 30 10:34:29 2024
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 002 Device 003: ID 2109:0817 VIA Labs, Inc. USB3.0 Hub             
+Bus 002 Device 004: ID 0bda:8153 Realtek Semiconductor Corp. RTL8153 Gigabit Ethernet Adapter
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 002: ID 045e:0990 Microsoft Corp. Surface Camera Front
+Bus 003 Device 003: ID 8087:0026 Intel Corp. AX201 Bluetooth
+Bus 003 Device 004: ID 1a40:0801 Terminus Technology Inc. USB 2.0 Hub
+Bus 003 Device 005: ID 1a40:0801 Terminus Technology Inc. USB 2.0 Hub
+Bus 003 Device 006: ID 2109:2817 VIA Labs, Inc. USB2.0 Hub             
+Bus 003 Device 007: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
+Bus 003 Device 008: ID 2109:0102 VIA Labs, Inc. USB 2.0 BILLBOARD             
+Bus 003 Device 009: ID 2357:0604 TP-Link TP-Link Bluetooth USB Adapter
+Bus 003 Device 012: ID 1d50:6089 OpenMoko, Inc. Great Scott Gadgets HackRF One SDR
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+ ~/U/sigint  nano multi_signal.py                    Wed Oct 30 10:35:06 2024
+ ~/U/sigint  sudo python3 multi_signal.py    11.8s  Wed Oct 30 10:36:27 2024
+[*] Starting multi-device signal collection...
+[*] Collecting ADS-B signals...
+[*] Scanning Bluetooth devices...
+[*] Scanning Wi-Fi networks...
+[*] Capturing 5 seconds at 2400.0 MHz...
+Found 1 device(s):
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2400000000 Hz/2400.000 MHz)
+Stop with Ctrl-C
+  0:  Nooelec, NESDR SMArt v5, SN: 00000001
+
+Using device 0: Generic RTL2832U OEM
+Detached kernel driver
+Found Rafael Micro R820T tuner
+Tuner gain set to automatic.
+Tuned to 1090000000 Hz.
+Exact sample rate is: 2000000.052982 Hz
+Sampling at 2000000 S/s.
+Allocating 12 zero-copy buffers
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.6 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2410.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2410000000 Hz/2410.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.2 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.3 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.4 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.2 dBfs
+Signal caught, exiting!
+
+User cancel, exiting...
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2420.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2420000000 Hz/2420.000 MHz)
+Stop with Ctrl-C
+Reattached kernel driver
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.5 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2430.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2430000000 Hz/2430.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.2 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2440.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2440000000 Hz/2440.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.5 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2450.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2450000000 Hz/2450.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.5 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2460.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2460000000 Hz/2460.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -33.9 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.1 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.0 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -33.9 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2470.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2470000000 Hz/2470.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.5 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.4 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2480.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2480000000 Hz/2480.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.9 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -33.4 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -33.1 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -33.3 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2490.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2490000000 Hz/2490.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.7 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.6 dBfs
+[!] HackRF capture timed out.
+[*] Capturing 5 seconds at 2500.0 MHz...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(2500000000 Hz/2500.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -34.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -34.6 dBfs
+[!] HackRF capture timed out.
+[*] Signal collection complete. Check 'multi_device_signals.txt' for results.
+ ~/U/sigint  cat multi_device_signals.txt    55.6s  Wed Oct 30 10:37:38 2024
+2024-10-30 10:36:43 - === Signal Collection Start ===
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -68 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -66 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -68 dBm
+2024-10-30 10:36:47 - Wi-Fi: EXPNet, Signal: -77 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -78 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -62 dBm
+2024-10-30 10:36:47 - Wi-Fi: Cyber-Team, Signal: -82 dBm
+2024-10-30 10:36:47 - Wi-Fi: Cyber-Team, Signal: -85 dBm
+2024-10-30 10:36:47 - Wi-Fi: Cyber-Team, Signal: -86 dBm
+2024-10-30 10:36:47 - Wi-Fi: DIRECT-Meta-64t9, Signal: -58 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -57 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -59 dBm
+2024-10-30 10:36:47 - Wi-Fi: EXPNet, Signal: -61 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -83 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -82 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -83 dBm
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -83 dBm
+2024-10-30 10:36:47 - Wi-Fi: EXPNet, Signal: -76 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -76 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -69 dBm
+2024-10-30 10:36:47 - Wi-Fi: RFDF, Signal: -72 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -87 dBm
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -75 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -82 dBm
+2024-10-30 10:36:47 - Wi-Fi: SKYNET, Signal: -82 dBm
+2024-10-30 10:36:47 - Wi-Fi: CICRange-Student, Signal: -82 dBm
+2024-10-30 10:36:47 - Wi-Fi: CS-110, Signal: -62 dBm
+2024-10-30 10:36:47 - Wi-Fi: SKYNET, Signal: -84 dBm
+2024-10-30 10:36:47 - Wi-Fi: SKYNET, Signal: -62 dBm
+2024-10-30 10:36:47 - Wi-Fi: CICRange-Student, Signal: -84 dBm
+2024-10-30 10:36:47 - Wi-Fi: CICRange-Student, Signal: -62 dBm
+2024-10-30 10:36:47 - Wi-Fi: CS-110, Signal: -84 dBm
+2024-10-30 10:36:47 - Wi-Fi: CS-110, Signal: -59 dBm
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -61 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -61 dBm
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -61 dBm
+2024-10-30 10:36:47 - Wi-Fi: EXPNet, Signal: -81 dBm
+2024-10-30 10:36:47 - Wi-Fi: MissionNet, Signal: -81 dBm
+2024-10-30 10:36:47 - Wi-Fi: eduwireless, Signal: -80 dBm
+2024-10-30 10:36:47 - Wi-Fi: AF_ACADEMY_GUEST, Signal: -81 dBm
+2024-10-30 10:36:47 - Wi-Fi: EXPNet, Signal: -77 dBm
+2024-10-30 10:36:47 - Wi-Fi: RFDF, Signal: -77 dBm
+2024-10-30 10:36:53 - ADS-B: *a19ce513e5193e08449f33bb0e26;
+2024-10-30 10:36:53 - ADS-B: *dd584f3f0bfd1fb4d40ec471e2b0;
+2024-10-30 10:36:53 - ADS-B: *8a4873283ab615efca3dd3799739;
+2024-10-30 10:36:53 - ADS-B: *8dfaeb15df849d16ab630b4b8c6f;
+2024-10-30 10:36:53 - ADS-B: *de56b6011df181183bf15db4aaa3;
+2024-10-30 10:36:53 - ADS-B: *a7230a85ac9e55e16f7a9196866e;
+2024-10-30 10:36:53 - ADS-B: *a36df22dede58bbe2b339bad7d25;
+2024-10-30 10:36:53 - ADS-B: *ccb62fc6844b2956e5cf6aad4111;
+2024-10-30 10:36:53 - ADS-B: *d3df03556615cbda9891f5ea3fb1;
+2024-10-30 10:36:53 - ADS-B: *921b38ce00ef9803dce607be8eb0;
+2024-10-30 10:36:53 - ADS-B: *846030eeace84f71072dc75b4c8f;
+2024-10-30 10:36:53 - ADS-B: *d36ca7decc8c1bbba5f127cec173;
+2024-10-30 10:36:53 - ADS-B: *e2800f0fd3aac53337974cd035b9;
+2024-10-30 10:36:53 - ADS-B: *87e13e1c43443fbde4df0c763a7b;
+2024-10-30 10:37:38 - === Signal Collection End ===
+ ~/U/sigint   

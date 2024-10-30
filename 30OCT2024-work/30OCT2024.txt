@@ -1,0 +1,338 @@
+ ~/U/s/output  cd ../                                Wed Oct 30 10:19:01 2024
+ ~/U/sigint  rm output/                              Wed Oct 30 10:20:02 2024
+rm: cannot remove 'output/': Is a directory
+ !  ~/U/sigint  nano signals.py                     Wed Oct 30 10:20:05 2024
+ ~/U/sigint  rm signals.py                  2234ms  Wed Oct 30 10:22:51 2024
+ ~/U/sigint  nano signals.py                         Wed Oct 30 10:22:53 2024
+ ~/U/sigint  sudo apt install bluez iw rtl-sdr hackrf
+
+bluez is already the newest version (5.77-1+kali1).
+iw is already the newest version (6.9-1).
+rtl-sdr is already the newest version (2.0.2-2).
+hackrf is already the newest version (2024.02.1-2).
+Summary:
+  Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 144
+ ~/U/sigint  sudo python3 signals.py         345ms  Wed Oct 30 10:23:11 2024
+[*] Starting signal collection...
+[*] Scanning Bluetooth devices...
+[*] Scanning Wi-Fi networks...
+[*] Collecting ADS-B signals...
+Found 1 device(s):
+  0:  Nooelec, NESDR SMArt v5, SN: 00000001
+
+Using device 0: Generic RTL2832U OEM
+Detached kernel driver
+Found Rafael Micro R820T tuner
+Tuner gain set to automatic.
+Tuned to 1090000000 Hz.
+Exact sample rate is: 2000000.052982 Hz
+Sampling at 2000000 S/s.
+Allocating 12 zero-copy buffers
+Signal caught, exiting!
+
+User cancel, exiting...
+Reattached kernel driver
+[*] Collecting ambient signals with HackRF...
+call hackrf_set_sample_rate(2000000 Hz/2.000 MHz)
+call hackrf_set_hw_sync_mode(0)
+call hackrf_set_freq(100000000 Hz/100.000 MHz)
+Stop with Ctrl-C
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.5 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+ 4.2 MiB / 1.000 sec =  4.2 MiB/second, average power -32.6 dBfs
+ 3.9 MiB / 1.000 sec =  3.9 MiB/second, average power -32.6 dBfs
+[!] HackRF capture timed out.
+[*] Signal collection complete. Check 'collected_signals.txt' for results.
+ ~/U/sigint  ls -a                            1.3m  Wed Oct 30 10:25:06 2024
+./  ../  collected_signals.txt  output/  signals.py
+ ~/U/sigint  cat collected_signals.txt               Wed Oct 30 10:25:14 2024
+2024-10-30 10:23:22 - === Signal Collection Start ===
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -61 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -77 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -77 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: Cyber-Team, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -85 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: Cyber-Team, Signal Strength: -68 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: ECE, Signal Strength: -85 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: Cyber-Team, Signal Strength: -88 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: DIRECT-Meta-64t9, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -82 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -81 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -83 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -72 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MokuGo-003424, Signal Strength: -64 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: RFDF, Signal Strength: -68 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -83 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -69 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -68 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -89 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -89 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -90 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -85 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -90 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -67 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: ECE, Signal Strength: -61 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -59 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -63 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -59 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -61 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -83 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -83 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -83 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -85 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: SKYNET, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CICRange-Student, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CS-110, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: SKYNET, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: SKYNET, Signal Strength: -85 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CICRange-Student, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CICRange-Student, Signal Strength: -84 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CS-110, Signal Strength: -62 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: CS-110, Signal Strength: -86 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -87 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -89 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -60 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -76 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -76 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -76 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -81 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: MissionNet, Signal Strength: -81 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: eduwireless, Signal Strength: -80 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: AF_ACADEMY_GUEST, Signal Strength: -81 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: EXPNet, Signal Strength: -74 dBm
+2024-10-30 10:23:39 - Wi-Fi Network: RFDF, Signal Strength: -75 dBm
+2024-10-30 10:24:09 - ADS-B Data: *cda0738b23541311c75680f2ed61;
+2024-10-30 10:24:09 - ADS-B Data: *c1fccb67135f0a00c64c0ef8c006;
+2024-10-30 10:24:09 - ADS-B Data: *fd6bd4b73562a2cd1553f4cde4b8;
+2024-10-30 10:24:09 - ADS-B Data: *8da4d39b99085dae305483657c11;
+2024-10-30 10:24:09 - ADS-B Data: *80e190b658a7620dcf55ae59af69;
+2024-10-30 10:24:09 - ADS-B Data: *d19d50189882a58a8b55e41d81a8;
+2024-10-30 10:24:09 - ADS-B Data: *8da4f39bd8231002204998908ad2;
+2024-10-30 10:24:09 - ADS-B Data: *8da4f39b5897720da355b3892154;
+2024-10-30 10:24:09 - ADS-B Data: *d169a7c11b2f2a9d7001cf6ec9eb;
+2024-10-30 10:24:09 - ADS-B Data: *9b5887720d7555b958ac4a6c2b4e;
+2024-10-30 10:24:09 - ADS-B Data: *ecbe1dc72e11ef0a8b2994a0a5ac;
+2024-10-30 10:24:09 - ADS-B Data: *9da4d39399085dae51509392ce6a;
+2024-10-30 10:24:09 - ADS-B Data: *ad852a56ea32ea644d5c88439c76;
+2024-10-30 10:24:09 - ADS-B Data: *c6564b91cc850d91304a4159d289;
+2024-10-30 10:24:09 - ADS-B Data: *d2b52b11a6b82be7a810be72c866;
+2024-10-30 10:24:09 - ADS-B Data: *d9ffef9491b16f097b13c4f3e054;
+2024-10-30 10:24:09 - ADS-B Data: *f854b3d0f9d8a88d79d959ce2a5d;
+2024-10-30 10:24:09 - ADS-B Data: *84e1cf125879223b4d512cd94313;
+2024-10-30 10:24:09 - ADS-B Data: *9a698653596925cb61c1a9cb9631;
+2024-10-30 10:24:09 - ADS-B Data: *ce0fc24ce781fa85368967db1683;
+2024-10-30 10:24:09 - ADS-B Data: *8da56a56ea32a865ed5c08019cfe;
+2024-10-30 10:24:09 - ADS-B Data: *8da4f39b99084eae70548a156f18;
+2024-10-30 10:24:09 - ADS-B Data: *8da56a5658794a39155133ea2afa;
+2024-10-30 10:24:09 - ADS-B Data: *a298a9e1713a76b52b524ddf72b9;
+2024-10-30 10:24:09 - ADS-B Data: *8da4f39b99285eae7654876a9b13;
+2024-10-30 10:24:09 - ADS-B Data: *b2f389e4c178261681f275a41401;
+2024-10-30 10:24:09 - ADS-B Data: *ddae29b165cf90de51087cef23ac;
+2024-10-30 10:24:09 - ADS-B Data: *8da4e31299285eae7058839af713;
+2024-10-30 10:24:09 - ADS-B Data: *8da4f39b21571331ef5c20e2ed71;
+2024-10-30 10:24:09 - ADS-B Data: *8da4d393ea38ab59493898f492cb;
+2024-10-30 10:24:09 - ADS-B Data: *caa102d5681f924dd5bf12caf28e;
+2024-10-30 10:24:09 - ADS-B Data: *eefb3b99c921b823767a43b66b81;
+2024-10-30 10:24:09 - ADS-B Data: *8db6f39b5884e20aeb5621a0eb01;
+2024-10-30 10:24:09 - ADS-B Data: *e64a17a9a41832349179e93db718;
+2024-10-30 10:24:09 - ADS-B Data: *bf4a437acbdfb046ce624bee223a;
+2024-10-30 10:24:09 - ADS-B Data: *eba41a087762d80aac4ed01ca369;
+2024-10-30 10:24:09 - ADS-B Data: *bea411c2d74fa122ee853fbcc94e;
+2024-10-30 10:24:09 - ADS-B Data: *a1dac490bfbbd2ad097b930dae1d;
+2024-10-30 10:24:09 - ADS-B Data: *c471df4232ca5eb90e9edf855084;
+2024-10-30 10:24:09 - ADS-B Data: *9af67ced328cb41212955cc09834;
+2024-10-30 10:24:09 - ADS-B Data: *c0bb86a05d0b2e320ab2cfd04d4e;
+2024-10-30 10:24:09 - ADS-B Data: *af6cd0250c529d1d58a8babced3b;
+2024-10-30 10:24:09 - ADS-B Data: *9bb0f114cf6f62ea90481de04f5e;
+2024-10-30 10:24:09 - ADS-B Data: *edeae2a4e5d0c32cc98bfb193791;
+2024-10-30 10:24:09 - ADS-B Data: *edf77a2d77583899a3e8f8db6b7f;
+2024-10-30 10:24:09 - ADS-B Data: *edc6b8e0cccb46bd2e3896e8bbc8;
+2024-10-30 10:24:09 - ADS-B Data: *ef659562f05c8f997a1b5edb14ad;
+2024-10-30 10:24:09 - ADS-B Data: *88d7949ad36eab5855e16ae47011;
+2024-10-30 10:24:09 - ADS-B Data: *c6b637b8d829f5729669b1264f5a;
+2024-10-30 10:24:09 - ADS-B Data: *8a81876c1829bd4f66dc1353aaf2;
+2024-10-30 10:24:09 - ADS-B Data: *ae7019ac65fa79098d10388b2f91;
+2024-10-30 10:24:09 - ADS-B Data: *b3997c62455e73c7b06162438956;
+2024-10-30 10:24:09 - ADS-B Data: *d26276758c7c0e2cbae975913cd9;
+2024-10-30 10:24:09 - ADS-B Data: *851b59a846b08ac95ebfde9547a9;
+2024-10-30 10:24:09 - ADS-B Data: *835e8b8a122ffb4b727d581b1e58;
+2024-10-30 10:24:09 - ADS-B Data: *9492cb3538f7feb77367935b2c62;
+2024-10-30 10:24:09 - ADS-B Data: *8da4b3935889d597c56ae89825ae;
+2024-10-30 10:24:09 - ADS-B Data: *bf69846915adcdaf95f8c3ff5423;
+2024-10-30 10:24:09 - ADS-B Data: *8f7fbd1e5acaa28557f4bbb0d288;
+2024-10-30 10:24:09 - ADS-B Data: *f799518ff7b92db132c10ebc2ca8;
+2024-10-30 10:24:09 - ADS-B Data: *da4644daaf1a10723d75a92c0505;
+2024-10-30 10:24:09 - ADS-B Data: *b109c9177493c9d0b236a32c105c;
+2024-10-30 10:24:09 - ADS-B Data: *b968d06cbfed3ef21d6fca5ff2d3;
+2024-10-30 10:24:09 - ADS-B Data: *f34b23336e75ef9a60fe72350473;
+2024-10-30 10:24:39 - === Signal Collection End ===
+ ~/U/sigint  ls usb                                  Wed Oct 30 10:25:17 2024
+ls: cannot access 'usb': No such file or directory
+ !  ~/U/sigint  lsusb                               Wed Oct 30 10:25:57 2024
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 002 Device 003: ID 2109:0817 VIA Labs, Inc. USB3.0 Hub             
+Bus 002 Device 004: ID 0bda:8153 Realtek Semiconductor Corp. RTL8153 Gigabit Ethernet Adapter
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 002: ID 045e:0990 Microsoft Corp. Surface Camera Front
+Bus 003 Device 003: ID 8087:0026 Intel Corp. AX201 Bluetooth
+Bus 003 Device 004: ID 1a40:0801 Terminus Technology Inc. USB 2.0 Hub
+Bus 003 Device 005: ID 1a40:0801 Terminus Technology Inc. USB 2.0 Hub
+Bus 003 Device 006: ID 2109:2817 VIA Labs, Inc. USB2.0 Hub             
+Bus 003 Device 007: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
+Bus 003 Device 008: ID 2109:0102 VIA Labs, Inc. USB 2.0 BILLBOARD             
+Bus 003 Device 009: ID 2357:0604 TP-Link TP-Link Bluetooth USB Adapter
+Bus 003 Device 012: ID 1d50:6089 OpenMoko, Inc. Great Scott Gadgets HackRF One SDR
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+ ~/U/sigint  cat signals.py                          Wed Oct 30 10:26:05 2024
+import subprocess
+import os
+import time
+import re
+import numpy as np
+from datetime import datetime
+from scapy.all import *
+from bluetooth import discover_devices, BluetoothError
+
+# Output file
+OUTPUT_FILE = "collected_signals.txt"
+
+def log_data(data):
+    """Log data to a single output file with timestamp."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(OUTPUT_FILE, "a") as f:
+        f.write(f"{timestamp} - {data}\n")
+
+# 1. Collect ADS-B data using rtl-sdr
+def collect_adsb():
+    print("[*] Collecting ADS-B signals...")
+    try:
+        adsb_process = subprocess.Popen(
+            ["rtl_adsb"], stdout=subprocess.PIPE, universal_newlines=True
+        )
+        time.sleep(30)  # Collect for 30 seconds
+        adsb_process.terminate()
+
+        for line in adsb_process.stdout:
+            if line.strip():
+                log_data(f"ADS-B Data: {line.strip()}")
+    except FileNotFoundError:
+        print("[!] rtl_adsb not found. Ensure rtl-sdr is installed.")
+
+# 2. Scan Bluetooth devices and record strength
+def scan_bluetooth():
+    print("[*] Scanning Bluetooth devices...")
+    try:
+        devices = discover_devices(duration=10, lookup_names=True, device_id=0)
+        for addr, name in devices:
+            rssi = get_bluetooth_rssi(addr)
+            log_data(f"Bluetooth Device: {name} [{addr}], Strength: {rssi} dBm")
+    except BluetoothError as e:
+        print(f"[!] Bluetooth error: {e}")
+
+def get_bluetooth_rssi(addr):
+    """Get the RSSI (signal strength) of a Bluetooth device."""
+    try:
+        output = subprocess.check_output(
+            ["sudo", "btmgmt", "find"], universal_newlines=True
+        )
+        match = re.search(rf"{addr} .* RSSI (-\d+)", output)
+        if match:
+            return match.group(1)
+    except subprocess.CalledProcessError:
+        pass
+    return "Unknown"
+
+# 3. Scan Wi-Fi networks and their signal strength
+def scan_wifi():
+    print("[*] Scanning Wi-Fi networks...")
+    try:
+        iwlist_output = subprocess.check_output(
+            ["iwlist", "wlan0", "scan"], universal_newlines=True
+        )
+        networks = re.findall(r'ESSID:"(.*?)".*?Signal level=(-\d+) dBm', iwlist_output, re.DOTALL)
+        for ssid, signal in networks:
+            log_data(f"Wi-Fi Network: {ssid}, Signal Strength: {signal} dBm")
+    except subprocess.CalledProcessError:
+        print("[!] Error scanning Wi-Fi. Ensure wlan0 is active.")
+
+# 4. Collect ambient signals using HackRF
+def analyze_ambient_signals():
+    print("[*] Collecting ambient signals with HackRF...")
+    try:
+        subprocess.run([
+            "hackrf_transfer", "-r", "/tmp/ambient.iq", "-s", "2000000", "-f", "100000000"
+        ], timeout=30)  # Capture 30 seconds of ambient signals
+
+        strength = process_iq_file("/tmp/ambient.iq")
+        log_data(f"Ambient Signal Strength: {strength} dB")
+    except subprocess.TimeoutExpired:
+        print("[!] HackRF capture timed out.")
+    except FileNotFoundError:
+        print("[!] HackRF not found. Ensure HackRF tools are installed.")
+
+def process_iq_file(iq_file):
+    """Process the IQ file to estimate signal strength."""
+    try:
+        iq_data = np.fromfile(iq_file, dtype=np.uint8)
+        amplitude = np.abs(iq_data - 127)  # Normalize IQ values
+        avg_strength = 20 * np.log10(np.mean(amplitude))
+        return round(avg_strength, 2)
+    except Exception as e:
+        print(f"[!] Error processing IQ file: {e}")
+        return "Unknown"
+
+# Main function to run all tasks
+def main():
+    print("[*] Starting signal collection...")
+    log_data("=== Signal Collection Start ===")
+    
+    scan_bluetooth()
+    scan_wifi()
+    collect_adsb()
+    analyze_ambient_signals()
+    
+    log_data("=== Signal Collection End ===")
+    print("[*] Signal collection complete. Check 'collected_signals.txt' for results.")
+
+if __name__ == "__main__":
+    main()
+ ~/U/sigint     
