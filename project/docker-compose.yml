@@ -1,17 +1,13 @@
-version: '3.8'
+# docker-compose.yml
+
+version: '3.8'  # Update to a supported version
 
 services:
   signal-collection-app:
     build: .
     ports:
-      - "5001:5000"  # Flask API
-      - "5173:5173"  # Vite dev server
+      - "5001:5000"  # Map container port 5000 to host port 5000
     volumes:
-      - ./data:/app/data  # Persist collected data
-    devices:
-      - "/dev/bus/usb:/dev/bus/usb"  # Access to USB devices for SDR
-    privileged: true  # Required for hardware access
+      - .:/app  # Optional: Mount the current directory to /app in the container
     environment:
-      - FLASK_ENV=production
-      - VITE_API_URL=http://localhost:5000
-    restart: unless-stopped
+      - FLASK_ENV=development  # Set environment variables as needed
