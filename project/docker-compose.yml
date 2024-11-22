@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  signal-collection-app:
+    build: .
+    ports:
+      - "5001:5000"  # Flask API
+      - "5173:5173"  # Vite dev server
+    volumes:
+      - ./data:/app/data  # Persist collected data
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"  # Access to USB devices for SDR
+    privileged: true  # Required for hardware access
+    environment:
+      - FLASK_ENV=production
+      - VITE_API_URL=http://localhost:5000
+    restart: unless-stopped
