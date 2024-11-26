@@ -6,6 +6,7 @@ import json
 import os
 import time
 from datetime import datetime
+from geopy.geocoders import Nominatim
 
 app = Flask(__name__, static_folder='../dist')
 CORS(app)
@@ -15,16 +16,25 @@ collection_process = None
 is_collecting = False
 collection_thread = None
 
+# Ensure the CSV exists with headers
+def initialize_csv():
+    if not os.path.exists('project_peak_signals.csv'):
+        with open('project_peak_signals.csv', 'w') as f:
+            f.write("Timestamp,Type,Name/Address,Signal Strength,Additional Info\n")
+
 def run_collection_script():
     global is_collecting
     while is_collecting:
         try:
             # Run the collection script and capture output
-            result = subprocess.run(['python3', 'collector.py'], 
-                                 capture_output=True, 
-                                 text=True, 
-                                 timeout=10)
-            print(result.stdout)
+            result = subprocess.run(
+                ['python3', 'api/collector.py'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            print("Collector Output:", result.stdout)
+            print("Collector Error:", result.stderr)
         except subprocess.TimeoutExpired:
             print("Collection cycle completed")
         except Exception as e:
@@ -42,7 +52,7 @@ def serve_static(path):
 @app.route('/api/start', methods=['POST'])
 def start_collection():
     global is_collecting, collection_thread
-    
+    initialize_csv()  # Ensure CSV is initialized
     if not is_collecting:
         is_collecting = True
         collection_thread = threading.Thread(target=run_collection_script)
@@ -53,7 +63,6 @@ def start_collection():
 @app.route('/api/stop', methods=['POST'])
 def stop_collection():
     global is_collecting, collection_thread
-    
     if is_collecting:
         is_collecting = False
         if collection_thread:
@@ -64,8 +73,7 @@ def stop_collection():
 @app.route('/api/reset', methods=['POST'])
 def reset_data():
     try:
-        with open('project_peak_signals.csv', 'w') as f:
-            f.write("Timestamp,Type,Name/Address,Signal Strength,Additional Info\n")
+        initialize_csv()  # Reinitialize CSV
         return jsonify({"status": "Data reset successful"})
     except Exception as e:
         return jsonify({"status": "Error", "message": str(e)}), 500
@@ -102,5 +110,18 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/location', methods=['GET'])
+def get_location():
+    try:
+        geolocator = Nominatim(user_agent="ProjectPEAK")
+        location = geolocator.geocode("Your location query or static address")
+        if location:
+            return jsonify({"latitude": location.latitude, "longitude": location.longitude})
+        else:
+            return jsonify({"error": "Unable to fetch geo-coordinates"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
+    initialize_csv()  # Ensure CSV is created at startup
     app.run(host='0.0.0.0', port=5000)

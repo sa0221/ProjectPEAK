@@ -70,7 +70,7 @@ async def scan_bluetooth():
             log_data(
                 "Bluetooth",
                 f"{device.name or 'Unknown'} [{device.address}]",
-                str(device.rssi),
+                str(device.rssi),  # Replace with AdvertisementData.rssi if needed
                 ""
             )
     except Exception as e:
