@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  signal-collection-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=development
+    privileged: true
+    volumes:
+      - ./api:/app/api
+      - /dev/bus/usb:/dev/bus/usb
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RAWIO
