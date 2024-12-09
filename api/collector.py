@@ -1,13 +1,10 @@
-# api/collector.py
-
 import asyncio
 import csv
 import os
-import re
-import subprocess
 import time
 from datetime import datetime
 from bleak import BleakScanner
+import subprocess
 
 OUTPUT_FILE = "project_peak_signals.csv"
 
@@ -51,7 +48,7 @@ async def scan_bluetooth():
             log_data(
                 "Bluetooth",
                 f"{device.name or 'Unknown'} [{device.address}]",
-                str(device.rssi),
+                "N/A",
                 ""
             )
     except Exception as e:
@@ -71,14 +68,22 @@ def capture_wifi():
     except Exception as e:
         print(f"[!] Error collecting Wi-Fi packets: {e}")
 
-async def main():
+def spectrum_sweep():
     try:
-        initialize_csv()
-        await scan_bluetooth()
-        collect_adsb()
-        capture_wifi()
+        process = subprocess.Popen(
+            ["hackrf_sweep", "-f", "100:6000", "-w", "2000000"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        for line in process.stdout:
+            if line.strip():
+                log_data("Spectrum", "hackrf_sweep", "N/A", line.strip())
     except Exception as e:
-        print(f"[!] Error in main collection: {e}")
+        print(f"[!] Error in spectrum sweep: {e}")
 
-if __name__ == "__main__":
-        asyncio.run(main())
+def run_collections():
+    asyncio.run(scan_bluetooth())
+    collect_adsb()
+    capture_wifi()
+    spectrum_sweep()

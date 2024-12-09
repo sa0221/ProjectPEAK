@@ -1,5 +1,3 @@
-// api/static/app.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
@@ -22,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/start', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
+                alert(data.status);
                 isCollecting = true;
                 fetchData();
             });
@@ -31,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/stop', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
+                alert(data.status);
                 isCollecting = false;
             });
     });
@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/api/reset', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
+                alert(data.status);
                 signalData = [];
                 updateUI();
             });
@@ -86,18 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSignalList() {
         signalList.innerHTML = '';
-        const filteredData = signalData.filter(signal => 
+        const filteredData = signalData.filter(signal =>
             selectedSignalType === 'all' || signal.type === selectedSignalType
         );
         filteredData.forEach(signal => {
             const listItem = document.createElement('li');
-            listItem.textContent = `${signal.timestamp} - ${signal.type} - ${signal.name_address}`;
+            listItem.textContent = `${signal.timestamp} - ${signal.type} - ${signal.name_address} (${signal.signal_strength || 'N/A'})`;
             signalList.appendChild(listItem);
         });
     }
 
     function updateSignalChart() {
-        // Example chart using Chart.js
         if (!chart) {
             chart = new Chart(chartCanvas.getContext('2d'), {
                 type: 'line',
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
             });
         }
-        const filteredData = signalData.filter(signal => 
+        const filteredData = signalData.filter(signal =>
             selectedSignalType === 'all' || signal.type === selectedSignalType
         );
         chart.data.labels = filteredData.map(signal => signal.timestamp);
@@ -134,25 +134,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSignalMap() {
-        // Example map using Leaflet.js
         if (!map) {
-            map = L.map(mapDiv).setView([0, 0], 2); // Default view
+            map = L.map(mapDiv).setView([0, 0], 2); // Default to world view
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
         }
-        // Clear existing markers
-        map.eachLayer((layer) => {
+
+        map.eachLayer(layer => {
             if (layer instanceof L.Marker) {
                 map.removeLayer(layer);
             }
         });
-        // Add markers for signals (if location data is available)
+
         signalData.forEach(signal => {
             if (signal.latitude && signal.longitude) {
-                L.marker([signal.latitude, signal.longitude])
+                L.marker([parseFloat(signal.latitude), parseFloat(signal.longitude)])
                     .addTo(map)
-                    .bindPopup(`${signal.type} - ${signal.name_address}`);
+                    .bindPopup(`<b>${signal.type}</b><br>${signal.name_address}<br>Strength: ${signal.signal_strength || 'N/A'}`);
             }
         });
     }
