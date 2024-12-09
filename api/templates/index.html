@@ -1,12 +1,9 @@
-<!-- api/templates/index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Signal Collection App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
@@ -14,15 +11,15 @@
     <div class="container">
         {% include 'control_panel.html' %}
         {% include 'signal_stats.html' %}
-        {% include 'signal_chart.html' %}
-        {% include 'signal_map.html' %}
+        
         {% include 'signal_list.html' %}
     </div>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Leaflet.js -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Your custom script -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    {% include 'signal_chart.html' %}
+    {% include 'signal_map.html' %}
 </body>
+
 </html>

@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedSignalType = 'all';
     let chart;
     let map;
+    let markers = [];
 
+    // Start collection
     startBtn.addEventListener('click', () => {
         fetch('/api/start', { method: 'POST' })
             .then(res => res.json())
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
+    // Stop collection
     stopBtn.addEventListener('click', () => {
         fetch('/api/stop', { method: 'POST' })
             .then(res => res.json())
@@ -35,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
+    // Reset data
     resetBtn.addEventListener('click', () => {
         fetch('/api/reset', { method: 'POST' })
             .then(res => res.json())
@@ -45,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
+    // Save data
     saveBtn.addEventListener('click', () => {
         fetch('/api/save', { method: 'POST' })
             .then(res => res.json())
@@ -53,11 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
+    // Signal type selector
     signalTypeSelect.addEventListener('change', () => {
         selectedSignalType = signalTypeSelect.value;
         updateUI();
     });
 
+    // Fetch data
     function fetchData() {
         if (!isCollecting) return;
         fetch('/api/data')
@@ -69,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    // Update UI
     function updateUI() {
         updateSignalStats();
         updateSignalList();
@@ -76,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSignalMap();
     }
 
+    // Update stats
     function updateSignalStats() {
         totalSignalsEl.textContent = signalData.length;
         if (signalData.length > 0) {
@@ -85,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Update signal list
     function updateSignalList() {
         signalList.innerHTML = '';
         const filteredData = signalData.filter(signal =>
@@ -92,66 +102,50 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         filteredData.forEach(signal => {
             const listItem = document.createElement('li');
-            listItem.textContent = `${signal.timestamp} - ${signal.type} - ${signal.name_address} (${signal.signal_strength || 'N/A'})`;
+            listItem.innerHTML = `
+                <b>Timestamp:</b> ${signal.timestamp}<br>
+                <b>Type:</b> ${signal.type}<br>
+                <b>Name/Address:</b> ${signal.name_address}<br>
+                <b>Signal Strength:</b> ${signal.signal_strength || 'N/A'}<br>
+                <b>Frequency:</b> ${signal.frequency || 'N/A'}<br>
+                <b>Latitude:</b> ${signal.latitude || 'N/A'}<br>
+                <b>Longitude:</b> ${signal.longitude || 'N/A'}<br>
+                <b>Additional Info:</b> ${signal.additional_info || 'N/A'}
+            `;
+            listItem.className = 'signal-item';
             signalList.appendChild(listItem);
         });
     }
 
-    function updateSignalChart() {
-        if (!chart) {
-            chart = new Chart(chartCanvas.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Signal Strength',
-                        data: [],
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        fill: false,
-                    }],
-                },
-                options: {
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'minute',
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                        },
-                    },
-                },
-            });
-        }
-        const filteredData = signalData.filter(signal =>
-            selectedSignalType === 'all' || signal.type === selectedSignalType
-        );
-        chart.data.labels = filteredData.map(signal => signal.timestamp);
-        chart.data.datasets[0].data = filteredData.map(signal => parseInt(signal.signal_strength) || 0);
-        chart.update();
-    }
-
+    // Update map
     function updateSignalMap() {
         if (!map) {
-            map = L.map(mapDiv).setView([0, 0], 2); // Default to world view
+            map = L.map(mapDiv).setView([39.7392, -104.9903], 12); // Default view
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
         }
 
-        map.eachLayer(layer => {
-            if (layer instanceof L.Marker) {
-                map.removeLayer(layer);
-            }
-        });
+        // Clear existing markers
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
 
-        signalData.forEach(signal => {
+        const filteredData = signalData.filter(signal =>
+            selectedSignalType === 'all' || signal.type === selectedSignalType
+        );
+
+        filteredData.forEach(signal => {
             if (signal.latitude && signal.longitude) {
-                L.marker([parseFloat(signal.latitude), parseFloat(signal.longitude)])
+                const marker = L.marker([parseFloat(signal.latitude), parseFloat(signal.longitude)])
                     .addTo(map)
-                    .bindPopup(`<b>${signal.type}</b><br>${signal.name_address}<br>Strength: ${signal.signal_strength || 'N/A'}`);
+                    .bindPopup(`
+                        <b>Type:</b> ${signal.type}<br>
+                        <b>Name/Address:</b> ${signal.name_address}<br>
+                        <b>Signal Strength:</b> ${signal.signal_strength || 'N/A'}<br>
+                        <b>Frequency:</b> ${signal.frequency || 'N/A'}<br>
+                        <b>Additional Info:</b> ${signal.additional_info || 'N/A'}
+                    `);
+                markers.push(marker);
             }
         });
     }

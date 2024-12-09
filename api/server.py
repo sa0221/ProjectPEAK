@@ -112,17 +112,15 @@ def collect_hackrf():
         print(f"[!] Error collecting HackRF data: {e}")
 
 def simulate_gps_coordinates():
-    # Simulated GPS coordinates for testing
     latitude = 39.7392 + random.uniform(-0.01, 0.01)
     longitude = -104.9903 + random.uniform(-0.01, 0.01)
     return latitude, longitude
 
 def triangulate_signals(signal_data):
-    # Dummy triangulation logic for demonstration
     if len(signal_data) < 3:
         return {"status": "Insufficient data for triangulation"}
-    latitude = sum([signal["latitude"] for signal in signal_data]) / len(signal_data)
-    longitude = sum([signal["longitude"] for signal in signal_data]) / len(signal_data)
+    latitude = sum([float(signal["latitude"]) for signal in signal_data]) / len(signal_data)
+    longitude = sum([float(signal["longitude"]) for signal in signal_data]) / len(signal_data)
     return {"latitude": latitude, "longitude": longitude, "status": "Triangulation successful"}
 
 async def run_collections():
