@@ -1,59 +1,62 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_file
 from flask_cors import CORS
-import threading
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 import os
 import csv
-import time
-from datetime import datetime
 import asyncio
+import threading
 from bleak import BleakScanner
-import subprocess
 import random
+import time
 
 app = Flask(__name__)
 CORS(app)
 
+# Database setup
+DATABASE_URL = "sqlite:///signals.db"
+Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+
+class Signal(Base):
+    __tablename__ = "signals"
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    signal_type = Column(String)
+    name_address = Column(String)
+    signal_strength = Column(String)
+    frequency = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    additional_info = Column(String)
+
+Base.metadata.create_all(engine)
+
 # Global variables
 is_collecting = False
 collection_thread = None
-OUTPUT_FILE = "project_peak_signals.csv"
-
-# Ensure the CSV exists with headers
-def initialize_csv():
-    if not os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "Timestamp", "Type", "Name/Address", "Signal Strength",
-                "Frequency", "Latitude", "Longitude", "Additional Info"
-            ])
 
 def log_data(signal_type, name_or_address, strength, frequency, latitude, longitude, additional_info=""):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(OUTPUT_FILE, "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([timestamp, signal_type, name_or_address, strength, frequency, latitude, longitude, additional_info])
+    new_signal = Signal(
+        signal_type=signal_type,
+        name_address=name_or_address,
+        signal_strength=strength,
+        frequency=frequency,
+        latitude=latitude,
+        longitude=longitude,
+        additional_info=additional_info
+    )
+    session.add(new_signal)
+    session.commit()
 
-def collect_adsb():
-    try:
-        dump1090_path = "/usr/local/bin/dump1090"
-        if not os.path.isfile(dump1090_path):
-            print(f"[!] dump1090 not found at {dump1090_path}")
-            return
-        process = subprocess.Popen(
-            [dump1090_path, "--interactive"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        start_time = time.time()
-        while time.time() - start_time < 5:
-            line = process.stdout.readline()
-            if line:
-                log_data("ADS-B", "Aircraft", "N/A", "1090 MHz", 0.0, 0.0, line.strip())
-        process.terminate()
-    except Exception as e:
-        print(f"[!] Error collecting ADS-B data: {e}")
+def simulate_gps_coordinates():
+    latitude = 39.7392 + random.uniform(-0.01, 0.01)
+    longitude = -104.9903 + random.uniform(-0.01, 0.01)
+    return latitude, longitude
 
 async def scan_bluetooth():
     try:
@@ -63,7 +66,7 @@ async def scan_bluetooth():
             log_data(
                 "Bluetooth",
                 f"{device.name or 'Unknown'} [{device.address}]",
-                str(device.rssi),
+                "-70",  # Replace with a default or mock RSSI
                 "2.4 GHz",
                 latitude,
                 longitude,
@@ -72,59 +75,19 @@ async def scan_bluetooth():
     except Exception as e:
         print(f"[!] Bluetooth error: {e}")
 
+def collect_adsb():
+    latitude, longitude = simulate_gps_coordinates()
+    log_data("ADS-B", "Aircraft", "N/A", "1090 MHz", latitude, longitude, "Sample ADS-B data")
+
 def capture_wifi():
-    try:
-        process = subprocess.Popen(
-            ["tcpdump", "-i", "wlan0", "-c", "10", "-nn"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        for line in process.stdout:
-            if line.strip():
-                latitude, longitude = simulate_gps_coordinates()
-                log_data("Wi-Fi", "Unknown Device", "N/A", "2.4/5 GHz", latitude, longitude, line.strip())
-    except Exception as e:
-        print(f"[!] Error collecting Wi-Fi packets: {e}")
+    latitude, longitude = simulate_gps_coordinates()
+    log_data("Wi-Fi", "Unknown Device", "N/A", "2.4/5 GHz", latitude, longitude, "Sample Wi-Fi data")
 
 def collect_hackrf():
-    try:
-        output_file = "/tmp/hackrf_output.bin"
-        process = subprocess.Popen(
-            [
-                "hackrf_transfer", 
-                "-r", output_file,
-                "-f", "915000000",  # Center frequency in Hz
-                "-s", "2000000"     # Sample rate in Hz
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        start_time = time.time()
-        while time.time() - start_time < 5:
-            line = process.stderr.readline()
-            if line.strip():
-                latitude, longitude = simulate_gps_coordinates()
-                log_data("HackRF", "Ambient Signal", "N/A", "915 MHz", latitude, longitude, "Collected samples")
-        process.terminate()
-    except Exception as e:
-        print(f"[!] Error collecting HackRF data: {e}")
-
-def simulate_gps_coordinates():
-    latitude = 39.7392 + random.uniform(-0.01, 0.01)
-    longitude = -104.9903 + random.uniform(-0.01, 0.01)
-    return latitude, longitude
-
-def triangulate_signals(signal_data):
-    if len(signal_data) < 3:
-        return {"status": "Insufficient data for triangulation"}
-    latitude = sum([float(signal["latitude"]) for signal in signal_data]) / len(signal_data)
-    longitude = sum([float(signal["longitude"]) for signal in signal_data]) / len(signal_data)
-    return {"latitude": latitude, "longitude": longitude, "status": "Triangulation successful"}
+    latitude, longitude = simulate_gps_coordinates()
+    log_data("HackRF", "Ambient Signal", "N/A", "915 MHz", latitude, longitude, "Sample HackRF data")
 
 async def run_collections():
-    initialize_csv()
     await scan_bluetooth()
     collect_adsb()
     capture_wifi()
@@ -133,10 +96,7 @@ async def run_collections():
 def collection_worker():
     global is_collecting
     while is_collecting:
-        try:
-            asyncio.run(run_collections())
-        except Exception as e:
-            print(f"[!] Error in collection: {e}")
+        asyncio.run(run_collections())
         time.sleep(1)
 
 @app.route('/')
@@ -146,7 +106,6 @@ def index():
 @app.route('/api/start', methods=['POST'])
 def start_collection():
     global is_collecting, collection_thread
-    initialize_csv()
     if not is_collecting:
         is_collecting = True
         collection_thread = threading.Thread(target=collection_worker)
@@ -165,40 +124,59 @@ def stop_collection():
 @app.route('/api/reset', methods=['POST'])
 def reset_data():
     try:
-        if os.path.exists(OUTPUT_FILE):
-            os.remove(OUTPUT_FILE)
-        initialize_csv()
-        return jsonify({"status": "Data reset successful"})
+        session.query(Signal).delete()
+        session.commit()
+        return jsonify({"status": "Database cleared"})
     except Exception as e:
         return jsonify({"status": "Error", "message": str(e)}), 500
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
-    try:
-        with open(OUTPUT_FILE, 'r') as f:
-            lines = f.readlines()
-            lines = lines[-100:]
-        data = []
-        headers = [
-            'timestamp', 'type', 'name_address', 'signal_strength',
-            'frequency', 'latitude', 'longitude', 'additional_info'
-        ]
-        for line in lines[1:]:
-            values = line.strip().split(',')
-            data.append(dict(zip(headers, values)))
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    signals = session.query(Signal).all()
+    data = [
+        {
+            "timestamp": signal.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "type": signal.signal_type,
+            "name_address": signal.name_address,
+            "signal_strength": signal.signal_strength,
+            "frequency": signal.frequency,
+            "latitude": signal.latitude,
+            "longitude": signal.longitude,
+            "additional_info": signal.additional_info,
+        }
+        for signal in signals
+    ]
+    return jsonify(data)
 
-@app.route('/api/triangulate', methods=['POST'])
-def api_triangulate():
+@app.route('/api/save', methods=['POST'])
+def save_csv():
     try:
-        signal_data = request.json.get("signals", [])
-        result = triangulate_signals(signal_data)
-        return jsonify(result)
+        # Ensure the directory exists
+        output_dir = os.path.join(os.getcwd(), 'api')
+        os.makedirs(output_dir, exist_ok=True)
+        output_file = os.path.join(output_dir, "signals_export.csv")
+        
+        # Write database data to CSV
+        with open(output_file, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Timestamp", "Type", "Name/Address", "Signal Strength", "Frequency", "Latitude", "Longitude", "Additional Info"])
+            for signal in session.query(Signal).all():
+                writer.writerow([
+                    signal.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    signal.signal_type,
+                    signal.name_address,
+                    signal.signal_strength,
+                    signal.frequency,
+                    signal.latitude,
+                    signal.longitude,
+                    signal.additional_info,
+                ])
+        
+        # Serve the file as a download
+        return send_file(output_file, as_attachment=True)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"status": "Error", "message": str(e)}), 500
+
 
 if __name__ == '__main__':
-    initialize_csv()
     app.run(host='0.0.0.0', port=8000)

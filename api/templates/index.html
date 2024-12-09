@@ -11,15 +11,14 @@
     <div class="container">
         {% include 'control_panel.html' %}
         {% include 'signal_stats.html' %}
-        
+        {% include 'signal_chart.html' %}
+        {% include 'signal_map.html' %} 
         {% include 'signal_list.html' %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 
-    {% include 'signal_chart.html' %}
-    {% include 'signal_map.html' %}
 </body>
 
 </html>
