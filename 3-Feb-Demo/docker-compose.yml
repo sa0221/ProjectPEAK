@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  controller:
+    build: .
+    environment:
+      - ROLE=controller
+    ports:
+      - "8000:8000"
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RAWIO
+
+  collector:
+    build: .
+    environment:
+      - ROLE=collector
+      - CONTROLLER_URL=http://controller:8000
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RAWIO
+    deploy:
+      replicas: 2
