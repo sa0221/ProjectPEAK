@@ -10,8 +10,6 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
-    depends_on:
-      - collector
     privileged: true
     cap_add:
       - NET_ADMIN
@@ -27,7 +25,14 @@ services:
       - CONTROLLER_URL=http://controller:8000
     restart: unless-stopped
     privileged: true
+    network_mode: host  # Critical for BLE/RF access
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+      - "/dev/serial:/dev/serial"
+    volumes:
+      - /var/run/dbus:/var/run/dbus
     cap_add:
       - NET_ADMIN
+      - NET_RAW
       - SYS_ADMIN
       - SYS_RAWIO
