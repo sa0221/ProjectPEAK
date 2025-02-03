@@ -1,5 +1,4 @@
 # collector.py
-
 import asyncio
 import subprocess
 import time
@@ -9,22 +8,32 @@ import os
 import httpx
 from bleak import BleakScanner
 
-# Configuration: the controller URL and base location
+# Get the controller URL from the environment; default to controller:8000.
 CONTROLLER_URL = os.environ.get("CONTROLLER_URL", "http://controller:8000")
-CONTROLLER_LAT = 39.7392
-CONTROLLER_LON = -104.9903
 
-# Return a random latitude/longitude within ~1km of the controller.
-def get_random_location():
+# Query the controller to get its current location.
+async def get_controller_location():
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{CONTROLLER_URL}/api/location")
+            data = response.json()
+            lat = data.get("lat", 39.7392)
+            lon = data.get("lon", -104.9903)
+            return lat, lon
+    except Exception as e:
+        print(f"[Collector] Error retrieving controller location: {e}")
+        return 39.7392, -104.9903
+
+# Return a random latitude/longitude within ~1km of the given location.
+def get_random_location(base_lat, base_lon):
     offset_lat = random.uniform(-0.01, 0.01)
     offset_lon = random.uniform(-0.01, 0.01)
-    return CONTROLLER_LAT + offset_lat, CONTROLLER_LON + offset_lon
+    return base_lat + offset_lat, base_lon + offset_lon
 
 def get_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# Collect ADS-B signals using dump1090.
-def collect_adsb():
+def collect_adsb(controller_lat, controller_lon):
     signals = []
     dump1090_path = "/usr/local/bin/dump1090"
     if not os.path.isfile(dump1090_path):
@@ -41,7 +50,7 @@ def collect_adsb():
         while time.time() - start_time < 5:
             line = process.stdout.readline()
             if line:
-                lat, lon = get_random_location()
+                lat, lon = get_random_location(controller_lat, controller_lon)
                 signals.append({
                     "timestamp": get_timestamp(),
                     "type": "ADS-B",
@@ -57,13 +66,12 @@ def collect_adsb():
         print(f"[ADS-B] Error: {e}")
     return signals
 
-# Scan for Bluetooth devices.
-async def scan_bluetooth():
+async def scan_bluetooth(controller_lat, controller_lon):
     signals = []
     try:
         devices = await BleakScanner.discover(timeout=5.0)
         for device in devices:
-            lat, lon = get_random_location()
+            lat, lon = get_random_location(controller_lat, controller_lon)
             signals.append({
                 "timestamp": get_timestamp(),
                 "type": "Bluetooth",
@@ -78,8 +86,7 @@ async def scan_bluetooth():
         print(f"[Bluetooth] Error: {e}")
     return signals
 
-# Capture Wi‑Fi packets using tcpdump.
-def capture_wifi():
+def capture_wifi(controller_lat, controller_lon):
     signals = []
     try:
         process = subprocess.Popen(
@@ -90,7 +97,7 @@ def capture_wifi():
         )
         for line in process.stdout:
             if line.strip():
-                lat, lon = get_random_location()
+                lat, lon = get_random_location(controller_lat, controller_lon)
                 signals.append({
                     "timestamp": get_timestamp(),
                     "type": "Wi-Fi",
@@ -105,8 +112,7 @@ def capture_wifi():
         print(f"[Wi-Fi] Error: {e}")
     return signals
 
-# Perform a spectrum sweep using hackrf_sweep.
-def spectrum_sweep():
+def spectrum_sweep(controller_lat, controller_lon):
     signals = []
     try:
         process = subprocess.Popen(
@@ -117,7 +123,7 @@ def spectrum_sweep():
         )
         for line in process.stdout:
             if line.strip():
-                lat, lon = get_random_location()
+                lat, lon = get_random_location(controller_lat, controller_lon)
                 signals.append({
                     "timestamp": get_timestamp(),
                     "type": "Spectrum",
@@ -132,14 +138,15 @@ def spectrum_sweep():
         print(f"[Spectrum] Error: {e}")
     return signals
 
-# Main collection loop: gather data and send to controller.
 async def collect_and_send():
     while True:
         print("[Collector] Starting collection cycle...")
-        bt_signals = await scan_bluetooth()
-        adsb_signals = await asyncio.to_thread(collect_adsb)
-        wifi_signals = await asyncio.to_thread(capture_wifi)
-        spectrum_signals = await asyncio.to_thread(spectrum_sweep)
+        controller_lat, controller_lon = await get_controller_location()
+        # Gather signals from all sources
+        bt_signals = await scan_bluetooth(controller_lat, controller_lon)
+        adsb_signals = await asyncio.to_thread(collect_adsb, controller_lat, controller_lon)
+        wifi_signals = await asyncio.to_thread(capture_wifi, controller_lat, controller_lon)
+        spectrum_signals = await asyncio.to_thread(spectrum_sweep, controller_lat, controller_lon)
         all_signals = bt_signals + adsb_signals + wifi_signals + spectrum_signals
         if all_signals:
             try:

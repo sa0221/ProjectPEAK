@@ -8,8 +8,7 @@ services:
     ports:
       - "8000:8000"
     privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
+    # Remove USB devices mapping when running privileged.
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
@@ -21,11 +20,8 @@ services:
       - ROLE=collector
       - CONTROLLER_URL=http://controller:8000
     privileged: true
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
+    # Remove USB devices mapping.
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
       - SYS_RAWIO
-    deploy:
-      replicas: 2

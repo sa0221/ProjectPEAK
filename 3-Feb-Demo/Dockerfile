@@ -19,13 +19,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source files and entrypoint
+# Copy the source files and entrypoint
 COPY controller.py .
 COPY collector.py .
 COPY entrypoint.sh .
 
-# Copy the dump1090 binary and make it executable
-COPY dump1090-project /usr/local/bin/dump1090
+# Copy the dump1090 binary (from local file "dump1090") and make it executable
+COPY dump1090 /usr/local/bin/dump1090
 RUN chmod +x /usr/local/bin/dump1090
 RUN chmod +x entrypoint.sh
 

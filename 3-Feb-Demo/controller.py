@@ -1,22 +1,44 @@
 # controller.py
-
-from fastapi import FastAPI, Response
+import requests
+import uvicorn
+from fastapi import FastAPI, Response, Body
 from fastapi.responses import HTMLResponse, StreamingResponse
 import csv
 import io
-import uvicorn
 
 app = FastAPI(title="Project PEAK Controller")
 
-# In-memory storage for incoming signals
+# Get the controller's real location from an external API.
+def get_controller_location():
+    try:
+        response = requests.get("http://ip-api.com/json/")
+        data = response.json()
+        if data.get("status") == "success":
+            lat = data.get("lat")
+            lon = data.get("lon")
+            print(f"[Controller] Detected location: {lat}, {lon}")
+            return lat, lon
+        else:
+            print("[Controller] Geolocation API error; using fallback coordinates.")
+            return 39.7392, -104.9903  # fallback to Denver
+    except Exception as e:
+        print(f"[Controller] Exception in geolocation: {e}")
+        return 39.7392, -104.9903  # fallback
+
+# Set the controller's coordinates at startup.
+CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
+
+# In-memory database for collected signals
 signals_db = []
 
-# Controller base location (for demo, we use Denver)
-CONTROLLER_LAT = 39.7392
-CONTROLLER_LON = -104.9903
+@app.get("/api/location")
+async def api_location():
+    """Return the controller's current coordinates."""
+    return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
 
+# Notice the use of Body(...) to explicitly parse the incoming JSON.
 @app.post("/api/collect")
-async def collect_signals(signals: list):
+async def collect_signals(signals: list = Body(...)):
     global signals_db
     for sig in signals:
         signals_db.append(sig)
@@ -60,7 +82,7 @@ async def save_data():
     response.headers["Content-Disposition"] = "attachment; filename=signals_export.csv"
     return response
 
-# HTML UI with embedded JavaScript (using Chart.js and Leaflet via CDN)
+# HTML UI with embedded JavaScript (Chart.js and Leaflet loaded via CDN)
 HTML_PAGE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -96,6 +118,7 @@ HTML_PAGE = """
   <div>
     <h3>Total Signals: <span id="total-signals">0</span></h3>
     <h3>Last Signal Time: <span id="last-signal-time">N/A</span></h3>
+    <h3>Controller Location: <span id="controller-location">Loading...</span></h3>
   </div>
   <ul id="signal-list"></ul>
   <canvas id="chart-canvas" width="400" height="200"></canvas>
@@ -112,6 +135,7 @@ HTML_PAGE = """
       const mapDiv = document.getElementById('map');
       const totalSignalsEl = document.getElementById('total-signals');
       const lastSignalTimeEl = document.getElementById('last-signal-time');
+      const controllerLocEl = document.getElementById('controller-location');
 
       let isCollecting = false;
       let selectedSignalType = 'all';
@@ -120,6 +144,17 @@ HTML_PAGE = """
       let markers = [];
       let heatLayer;
       let totalSignals = 0;
+
+      // Fetch controller location and update UI
+      fetch('/api/location')
+        .then(res => res.json())
+        .then(loc => {
+          controllerLocEl.textContent = loc.lat + ", " + loc.lon;
+          // Center the map on the controller's location
+          if (map) {
+            map.setView([loc.lat, loc.lon], 12);
+          }
+        });
 
       fetchData();
 
@@ -250,11 +285,16 @@ HTML_PAGE = """
 
       function updateMap(data) {
         if (!map) {
-          map = L.map(mapDiv).setView([39.7392, -104.9903], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
-          heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
+          // Default to controller's location if available
+          fetch('/api/location')
+            .then(res => res.json())
+            .then(loc => {
+              map = L.map(mapDiv).setView([loc.lat, loc.lon], 12);
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+              }).addTo(map);
+              heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
+            });
         }
         markers.forEach(marker => map.removeLayer(marker));
         markers = [];
@@ -274,7 +314,9 @@ HTML_PAGE = """
             markers.push(marker);
           }
         });
-        heatLayer.setLatLngs(heatData);
+        if (heatLayer) {
+          heatLayer.setLatLngs(heatData);
+        }
       }
 
       function resetUI() {
@@ -300,7 +342,7 @@ HTML_PAGE = """
 """
 
 @app.get("/", response_class=HTMLResponse)
-async def get_index():
+async def index():
     return HTML_PAGE
 
 if __name__ == "__main__":
