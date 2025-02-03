@@ -1,14 +1,37 @@
 # controller.py
 import requests
 import uvicorn
-from fastapi import FastAPI, Response, Body
+from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse, StreamingResponse
-import csv
-import io
+import csv, io, re
+from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
 app = FastAPI(title="Project PEAK Controller")
 
-# Get the controller's real location from an external API.
+# --- Database Setup ---
+DATABASE_URL = "sqlite:///signals.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class Signal(Base):
+    __tablename__ = "signals"
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(String)
+    type = Column(String)
+    name_address = Column(String)
+    signal_strength = Column(String)
+    frequency = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    additional_info = Column(String)
+
+Base.metadata.create_all(bind=engine)
+
+# --- Controller Location ---
 def get_controller_location():
     try:
         response = requests.get("http://ip-api.com/json/")
@@ -20,38 +43,64 @@ def get_controller_location():
             return lat, lon
         else:
             print("[Controller] Geolocation API error; using fallback coordinates.")
-            return 39.7392, -104.9903  # fallback to Denver
+            return 39.7392, -104.9903  # fallback (Denver)
     except Exception as e:
         print(f"[Controller] Exception in geolocation: {e}")
-        return 39.7392, -104.9903  # fallback
+        return 39.7392, -104.9903
 
-# Set the controller's coordinates at startup.
 CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
-
-# In-memory database for collected signals
-signals_db = []
 
 @app.get("/api/location")
 async def api_location():
-    """Return the controller's current coordinates."""
     return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
 
-# Notice the use of Body(...) to explicitly parse the incoming JSON.
+# --- API Endpoints ---
 @app.post("/api/collect")
 async def collect_signals(signals: list = Body(...)):
-    global signals_db
+    db = SessionLocal()
+    # Remove control characters from additional_info for cleaner UI
+    control_char_pattern = re.compile(r'[\x00-\x1F\x7F]')
     for sig in signals:
-        signals_db.append(sig)
+        info = sig.get("additional_info", "")
+        cleaned_info = control_char_pattern.sub("", info)
+        new_signal = Signal(
+            timestamp=sig.get("timestamp", ""),
+            type=sig.get("type", ""),
+            name_address=sig.get("name_address", ""),
+            signal_strength=sig.get("signal_strength", ""),
+            frequency=sig.get("frequency", ""),
+            latitude=sig.get("latitude"),
+            longitude=sig.get("longitude"),
+            additional_info=cleaned_info
+        )
+        db.add(new_signal)
+    db.commit()
+    db.close()
     return {"status": "success", "received": len(signals)}
 
 @app.get("/api/data")
 async def get_data():
-    return signals_db
+    db = SessionLocal()
+    signals = db.query(Signal).all()
+    db.close()
+    data = [{
+        "timestamp": s.timestamp,
+        "type": s.type,
+        "name_address": s.name_address,
+        "signal_strength": s.signal_strength,
+        "frequency": s.frequency,
+        "latitude": s.latitude,
+        "longitude": s.longitude,
+        "additional_info": s.additional_info
+    } for s in signals]
+    return data
 
 @app.post("/api/reset")
 async def reset_data():
-    global signals_db
-    signals_db = []
+    db = SessionLocal()
+    db.query(Signal).delete()
+    db.commit()
+    db.close()
     return {"status": "reset"}
 
 @app.post("/api/start")
@@ -64,25 +113,28 @@ async def stop_collection():
 
 @app.post("/api/save")
 async def save_data():
+    db = SessionLocal()
+    signals = db.query(Signal).all()
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["Timestamp", "Type", "Name/Address", "Signal Strength", "Additional Info", "Frequency", "Latitude", "Longitude"])
-    for sig in signals_db:
+    for s in signals:
         writer.writerow([
-            sig.get("timestamp", ""),
-            sig.get("type", ""),
-            sig.get("name_address", ""),
-            sig.get("signal_strength", ""),
-            sig.get("additional_info", ""),
-            sig.get("frequency", ""),
-            sig.get("latitude", ""),
-            sig.get("longitude", "")
+            s.timestamp,
+            s.type,
+            s.name_address,
+            s.signal_strength,
+            s.additional_info,
+            s.frequency,
+            s.latitude,
+            s.longitude
         ])
+    db.close()
     response = StreamingResponse(io.StringIO(output.getvalue()), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=signals_export.csv"
     return response
 
-# HTML UI with embedded JavaScript (Chart.js and Leaflet loaded via CDN)
+# --- HTML UI ---
 HTML_PAGE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -94,10 +146,17 @@ HTML_PAGE = """
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #controls { margin-bottom: 20px; }
-    #signal-list li { margin-bottom: 10px; }
-    #map { height: 400px; margin-top: 20px; }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    #controls { text-align: center; margin-bottom: 20px; }
+    button { padding: 10px 20px; margin: 5px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    select { padding: 10px; margin: 5px; border-radius: 5px; }
+    #stats { text-align: center; margin-bottom: 20px; }
+    #signal-list { list-style: none; padding: 10px; max-height: 300px; overflow-y: scroll; background: white; border-radius: 5px; }
+    #signal-list li { border-bottom: 1px solid #ddd; padding: 5px; }
+    #chart-canvas { margin: auto; display: block; max-width: 600px; }
+    #map { height: 400px; margin: 20px auto; max-width: 600px; }
   </style>
 </head>
 <body>
@@ -115,13 +174,13 @@ HTML_PAGE = """
       <option value="Spectrum">Spectrum</option>
     </select>
   </div>
-  <div>
+  <div id="stats">
     <h3>Total Signals: <span id="total-signals">0</span></h3>
     <h3>Last Signal Time: <span id="last-signal-time">N/A</span></h3>
     <h3>Controller Location: <span id="controller-location">Loading...</span></h3>
   </div>
   <ul id="signal-list"></ul>
-  <canvas id="chart-canvas" width="400" height="200"></canvas>
+  <canvas id="chart-canvas" width="600" height="300"></canvas>
   <div id="map"></div>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -150,9 +209,12 @@ HTML_PAGE = """
         .then(res => res.json())
         .then(loc => {
           controllerLocEl.textContent = loc.lat + ", " + loc.lon;
-          // Center the map on the controller's location
-          if (map) {
-            map.setView([loc.lat, loc.lon], 12);
+          if (!map) {
+            map = L.map(mapDiv).setView([loc.lat, loc.lon], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
           }
         });
 
@@ -285,7 +347,6 @@ HTML_PAGE = """
 
       function updateMap(data) {
         if (!map) {
-          // Default to controller's location if available
           fetch('/api/location')
             .then(res => res.json())
             .then(loc => {

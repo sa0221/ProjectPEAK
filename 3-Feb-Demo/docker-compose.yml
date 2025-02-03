@@ -2,25 +2,31 @@ version: '3.8'
 
 services:
   controller:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.controller
     environment:
       - ROLE=controller
     ports:
       - "8000:8000"
+    restart: unless-stopped
+    depends_on:
+      - collector
     privileged: true
-    # Remove USB devices mapping when running privileged.
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
       - SYS_RAWIO
 
   collector:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.collector
     environment:
       - ROLE=collector
       - CONTROLLER_URL=http://controller:8000
+    restart: unless-stopped
     privileged: true
-    # Remove USB devices mapping.
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

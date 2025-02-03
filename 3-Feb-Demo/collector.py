@@ -47,20 +47,23 @@ def collect_adsb(controller_lat, controller_lon):
             text=True
         )
         start_time = time.time()
+        # Only log lines that seem to be valid ADS-B messages (typically starting with "8D")
         while time.time() - start_time < 5:
             line = process.stdout.readline()
             if line:
-                lat, lon = get_random_location(controller_lat, controller_lon)
-                signals.append({
-                    "timestamp": get_timestamp(),
-                    "type": "ADS-B",
-                    "name_address": "dump1090",
-                    "signal_strength": "N/A",
-                    "additional_info": line.strip(),
-                    "frequency": "",
-                    "latitude": lat,
-                    "longitude": lon
-                })
+                stripped = line.strip()
+                if stripped.startswith("8D"):  # simple filter for valid ADS-B messages
+                    lat, lon = get_random_location(controller_lat, controller_lon)
+                    signals.append({
+                        "timestamp": get_timestamp(),
+                        "type": "ADS-B",
+                        "name_address": "dump1090",
+                        "signal_strength": "N/A",
+                        "additional_info": stripped,
+                        "frequency": "1090 MHz",
+                        "latitude": lat,
+                        "longitude": lon
+                    })
         process.terminate()
     except Exception as e:
         print(f"[ADS-B] Error: {e}")
@@ -78,7 +81,7 @@ async def scan_bluetooth(controller_lat, controller_lon):
                 "name_address": f"{device.name or 'Unknown'} [{device.address}]",
                 "signal_strength": "N/A",
                 "additional_info": "",
-                "frequency": "",
+                "frequency": "2.4 GHz",
                 "latitude": lat,
                 "longitude": lon
             })
@@ -89,6 +92,7 @@ async def scan_bluetooth(controller_lat, controller_lon):
 def capture_wifi(controller_lat, controller_lon):
     signals = []
     try:
+        # Ensure the correct interface name; change "wlan0" if needed.
         process = subprocess.Popen(
             ["tcpdump", "-i", "wlan0", "-c", "10", "-nn"],
             stdout=subprocess.PIPE,
@@ -104,7 +108,7 @@ def capture_wifi(controller_lat, controller_lon):
                     "name_address": "tcpdump",
                     "signal_strength": "N/A",
                     "additional_info": line.strip(),
-                    "frequency": "",
+                    "frequency": "2.4/5 GHz",
                     "latitude": lat,
                     "longitude": lon
                 })
@@ -130,7 +134,7 @@ def spectrum_sweep(controller_lat, controller_lon):
                     "name_address": "hackrf_sweep",
                     "signal_strength": "N/A",
                     "additional_info": line.strip(),
-                    "frequency": "",
+                    "frequency": "various",
                     "latitude": lat,
                     "longitude": lon
                 })
