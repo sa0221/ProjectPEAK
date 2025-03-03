@@ -1,4 +1,3 @@
-# controller.py
 import requests
 import uvicorn
 from fastapi import FastAPI, Body
@@ -31,6 +30,10 @@ class Signal(Base):
 
 Base.metadata.create_all(bind=engine)
 
+# --- Controller State ---
+collection_active = False    # whether collection is active (controlled via API)
+devices_info = []            # last reported hardware devices list
+
 # --- Controller Location ---
 def get_controller_location():
     try:
@@ -43,7 +46,7 @@ def get_controller_location():
             return lat, lon
         else:
             print("[Controller] Geolocation API error; using fallback coordinates.")
-            return 39.7392, -104.9903  # fallback (Denver)
+            return 39.7392, -104.9903  # Fallback coordinates (Denver)
     except Exception as e:
         print(f"[Controller] Exception in geolocation: {e}")
         return 39.7392, -104.9903
@@ -54,11 +57,38 @@ CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
 async def api_location():
     return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
 
-# --- API Endpoints ---
+# --- Collection Control Endpoints ---
+@app.get("/api/collection-status")
+async def api_collection_status():
+    return {"active": collection_active}
+
+@app.post("/api/start")
+async def start_collection():
+    global collection_active
+    collection_active = True
+    return {"status": "collection started"}
+
+@app.post("/api/stop")
+async def stop_collection():
+    global collection_active
+    collection_active = False
+    return {"status": "collection stopped"}
+
+@app.post("/api/devices")
+async def update_devices(devices: dict = Body(...)):
+    global devices_info
+    devices_info = devices.get("devices", [])
+    return {"status": "devices updated"}
+
+@app.get("/api/devices")
+async def get_devices():
+    return {"devices": devices_info}
+
+# --- Data Collection Endpoints ---
 @app.post("/api/collect")
 async def collect_signals(signals: list = Body(...)):
     db = SessionLocal()
-    # Remove control characters from additional_info for cleaner UI
+    # Clean control characters from additional_info for nicer display
     control_char_pattern = re.compile(r'[\x00-\x1F\x7F]')
     for sig in signals:
         info = sig.get("additional_info", "")
@@ -102,14 +132,6 @@ async def reset_data():
     db.commit()
     db.close()
     return {"status": "reset"}
-
-@app.post("/api/start")
-async def start_collection():
-    return {"status": "collection started"}
-
-@app.post("/api/stop")
-async def stop_collection():
-    return {"status": "collection stopped"}
 
 @app.post("/api/save")
 async def save_data():
@@ -178,6 +200,7 @@ HTML_PAGE = """
     <h3>Total Signals: <span id="total-signals">0</span></h3>
     <h3>Last Signal Time: <span id="last-signal-time">N/A</span></h3>
     <h3>Controller Location: <span id="controller-location">Loading...</span></h3>
+    <h3>Detected Hardware: <span id="hardware-list">Loading...</span></h3>
   </div>
   <ul id="signal-list"></ul>
   <canvas id="chart-canvas" width="600" height="300"></canvas>
@@ -195,6 +218,7 @@ HTML_PAGE = """
       const totalSignalsEl = document.getElementById('total-signals');
       const lastSignalTimeEl = document.getElementById('last-signal-time');
       const controllerLocEl = document.getElementById('controller-location');
+      const hardwareListEl = document.getElementById('hardware-list');
 
       let isCollecting = false;
       let selectedSignalType = 'all';
@@ -216,6 +240,13 @@ HTML_PAGE = """
             }).addTo(map);
             heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
           }
+        });
+
+      // Fetch detected hardware and update UI
+      fetch('/api/devices')
+        .then(res => res.json())
+        .then(data => {
+          hardwareListEl.textContent = data.devices ? data.devices.join(', ') : 'None';
         });
 
       fetchData();

@@ -1,17 +1,6 @@
-#
-# Dockerfile.controller
-#
-FROM ubuntu:22.04
+FROM python:3.11-slim
 
-# 1) Get Python 3.11 from deadsnakes PPA
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    python3.11 python3.11-dev python3-pip
-
-# 2) Install system utilities and libraries
+# Install system utilities and libraries
 RUN apt-get update && apt-get install -y \
     build-essential \
     usbutils \
@@ -30,11 +19,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 3) Copy and install Python deps
+# Python dependencies
 COPY requirements.txt .
-RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 4) Copy controller source
+# Application files
 COPY controller.py .
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
