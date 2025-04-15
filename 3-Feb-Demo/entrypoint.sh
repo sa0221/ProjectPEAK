@@ -1,3 +1,5 @@
+# entrypoint.sh
+
 #!/bin/bash
 if [ "$ROLE" == "controller" ]; then
     echo "Starting Controller..."

@@ -1,3 +1,36 @@
+#!/usr/bin/env python3
+"""
+Controller Service Module for Project PEAK
+
+This module provides a FastAPI-powered web service that centralizes control and data management for the Project PEAK system.
+It exposes RESTful endpoints for starting/stopping signal collection, updating and retrieving detected hardware details,
+persisting collected signal data to a SQLite database using SQLAlchemy, and offering a real-time HTML dashboard to monitor
+and analyze the received signals.
+
+Key Features:
+    - API endpoints for controlling signal collection:
+        * /api/start: Enable data collection.
+        * /api/stop: Disable data collection.
+        * /api/collection-status: Query the current status.
+    - Device registration via /api/devices: Allows collectors to report detected hardware.
+    - Data ingestion endpoint (/api/collect) for persisting RF signal data with detailed metadata.
+    - Endpoints for data retrieval:
+        * /api/data: Retrieve all stored signals.
+        * /api/save: Export signals as a CSV file.
+    - A built-in dashboard (HTML served at '/') that uses Chart.js and Leaflet.js for visualization.
+    - Geolocation retrieval for dynamic UI mapping, falling back to default (Denver) if necessary.
+
+Usage:
+    Execute this module directly (or via Docker) to start the uvicorn ASGI server on port 8000.
+    
+Requirements:
+    - Python 3.11+
+    - FastAPI, uvicorn, SQLAlchemy, requests, csv, and other supporting libraries.
+
+Author: [Your Name]
+Date: 2025-04-14
+"""
+
 import requests
 import uvicorn
 from fastapi import FastAPI, Body
@@ -11,12 +44,26 @@ from datetime import datetime
 app = FastAPI(title="Project PEAK Controller")
 
 # --- Database Setup ---
-DATABASE_URL = "sqlite:///signals.db"
+DATABASE_URL: str = "sqlite:///signals.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class Signal(Base):
+    """
+    SQLAlchemy ORM model for storing RF signal entries.
+
+    Attributes:
+        id (int): Unique primary key.
+        timestamp (str): Timestamp of signal capture (ISO formatted).
+        type (str): Signal type (e.g., Bluetooth, ADS-B, Wi-Fi).
+        name_address (str): Concatenated device name and/or address.
+        signal_strength (str): Signal strength (may be "N/A" if not available).
+        frequency (str): Reception frequency (e.g., "1090 MHz" for ADS-B).
+        latitude (float): Latitude from geolocation, if available.
+        longitude (float): Longitude from geolocation, if available.
+        additional_info (str): Raw or supplementary signal data.
+    """
     __tablename__ = "signals"
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(String)
@@ -31,11 +78,22 @@ class Signal(Base):
 Base.metadata.create_all(bind=engine)
 
 # --- Controller State ---
-collection_active = False    # whether collection is active (controlled via API)
-devices_info = []            # last reported hardware devices list
+collection_active: bool = False  # Global flag indicating whether collection is ongoing.
+devices_info: list[str] = []       # Stores the latest reported hardware devices from collectors.
 
-# --- Controller Location ---
-def get_controller_location():
+def get_controller_location() -> tuple[float, float]:
+    """
+    Obtain the geolocation coordinates for the Controller using an external service.
+
+    This function sends a GET request to "http://ip-api.com/json/" to retrieve latitude and longitude.
+    If the API call is unsuccessful, it logs the error and falls back to default coordinates (Denver).
+
+    Returns:
+        tuple[float, float]: A tuple containing (latitude, longitude).
+
+    Notes:
+        The geolocation data is used for mapping purposes in the dashboard UI.
+    """
     try:
         response = requests.get("http://ip-api.com/json/")
         data = response.json()
@@ -46,7 +104,7 @@ def get_controller_location():
             return lat, lon
         else:
             print("[Controller] Geolocation API error; using fallback coordinates.")
-            return 39.7392, -104.9903  # Fallback coordinates (Denver)
+            return 39.7392, -104.9903
     except Exception as e:
         print(f"[Controller] Exception in geolocation: {e}")
         return 39.7392, -104.9903
@@ -54,41 +112,116 @@ def get_controller_location():
 CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
 
 @app.get("/api/location")
-async def api_location():
+async def api_location() -> dict:
+    """
+    Endpoint: GET /api/location
+
+    Returns the current geographical coordinates of the Controller.
+
+    Returns:
+        dict: A dictionary with keys 'lat' and 'lon' representing the controller's latitude and longitude.
+    """
     return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
 
-# --- Collection Control Endpoints ---
 @app.get("/api/collection-status")
-async def api_collection_status():
+async def api_collection_status() -> dict:
+    """
+    Endpoint: GET /api/collection-status
+
+    Provides the current state (active/inactive) of the RF signal collection process.
+
+    Returns:
+        dict: {"active": <bool>} indicating if signal collection is enabled.
+    """
     return {"active": collection_active}
 
 @app.post("/api/start")
-async def start_collection():
+async def start_collection() -> dict:
+    """
+    Endpoint: POST /api/start
+
+    Activates the RF signal collection process.
+    
+    Side Effects:
+        Sets the global variable 'collection_active' to True.
+
+    Returns:
+        dict: A confirmation message, e.g., {"status": "collection started"}.
+    """
     global collection_active
     collection_active = True
     return {"status": "collection started"}
 
 @app.post("/api/stop")
-async def stop_collection():
+async def stop_collection() -> dict:
+    """
+    Endpoint: POST /api/stop
+
+    Deactivates the RF signal collection process.
+    
+    Side Effects:
+        Sets the global variable 'collection_active' to False.
+
+    Returns:
+        dict: A confirmation message, e.g., {"status": "collection stopped"}.
+    """
     global collection_active
     collection_active = False
     return {"status": "collection stopped"}
 
 @app.post("/api/devices")
-async def update_devices(devices: dict = Body(...)):
+async def update_devices(devices: dict = Body(...)) -> dict:
+    """
+    Endpoint: POST /api/devices
+
+    Updates the Controller with the latest list of detected hardware devices provided by a collector.
+
+    Args:
+        devices (dict): Expected in the format {"devices": [<device1>, <device2>, ...]}.
+
+    Side Effects:
+        Updates the global 'devices_info' list with the provided devices.
+
+    Returns:
+        dict: A simple confirmation message, e.g., {"status": "devices updated"}.
+    """
     global devices_info
     devices_info = devices.get("devices", [])
     return {"status": "devices updated"}
 
 @app.get("/api/devices")
-async def get_devices():
+async def get_devices() -> dict:
+    """
+    Endpoint: GET /api/devices
+
+    Returns the most recently recorded list of detected hardware devices.
+
+    Returns:
+        dict: A dictionary containing the key 'devices' with an array of device names.
+    """
     return {"devices": devices_info}
 
-# --- Data Collection Endpoints ---
 @app.post("/api/collect")
-async def collect_signals(signals: list = Body(...)):
+async def collect_signals(signals: list = Body(...)) -> dict:
+    """
+    Endpoint: POST /api/collect
+
+    Ingests a list of RF signal data dictionaries (sent by collectors), cleans the extra control characters,
+    and persists each entry into the SQLite database using SQLAlchemy.
+
+    Args:
+        signals (list): A list of dictionaries containing signal information (e.g., timestamp, type, name_address, etc.).
+
+    Process:
+        - Iterates over each dictionary.
+        - Removes control characters from the 'additional_info' field for a clean display.
+        - Creates and adds a new Signal instance to the database.
+        - Commits the changes.
+
+    Returns:
+        dict: A confirmation with the count of successfully received signals (e.g., {"status": "success", "received": <count>}).
+    """
     db = SessionLocal()
-    # Clean control characters from additional_info for nicer display
     control_char_pattern = re.compile(r'[\x00-\x1F\x7F]')
     for sig in signals:
         info = sig.get("additional_info", "")
@@ -109,11 +242,20 @@ async def collect_signals(signals: list = Body(...)):
     return {"status": "success", "received": len(signals)}
 
 @app.get("/api/data")
-async def get_data():
+async def get_data() -> list[dict]:
+    """
+    Endpoint: GET /api/data
+
+    Retrieves all stored RF signal entries from the database.
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing a stored signal with keys such as
+                    timestamp, type, name_address, signal_strength, frequency, latitude, longitude, and additional_info.
+    """
     db = SessionLocal()
     signals = db.query(Signal).all()
     db.close()
-    data = [{
+    return [{
         "timestamp": s.timestamp,
         "type": s.type,
         "name_address": s.name_address,
@@ -123,10 +265,20 @@ async def get_data():
         "longitude": s.longitude,
         "additional_info": s.additional_info
     } for s in signals]
-    return data
 
 @app.post("/api/reset")
-async def reset_data():
+async def reset_data() -> dict:
+    """
+    Endpoint: POST /api/reset
+
+    Deletes all RF signal data stored in the database.
+
+    Side Effects:
+        Clears the 'signals' table in the SQLite database.
+
+    Returns:
+        dict: A confirmation message indicating that the reset was successful, e.g., {"status": "reset"}.
+    """
     db = SessionLocal()
     db.query(Signal).delete()
     db.commit()
@@ -134,7 +286,21 @@ async def reset_data():
     return {"status": "reset"}
 
 @app.post("/api/save")
-async def save_data():
+async def save_data() -> StreamingResponse:
+    """
+    Endpoint: POST /api/save
+
+    Exports the stored RF signal data as a CSV file by reading from the SQLite database and writing data to an in-memory CSV.
+
+    Process:
+        - Queries all Signal entries.
+        - Writes the data with headers into a CSV format.
+        - Wraps the in-memory CSV content into a StreamingResponse with appropriate headers
+          to prompt a file download.
+
+    Returns:
+        StreamingResponse: A stream of CSV data with the header indicating 'filename=signals_export.csv'.
+    """
     db = SessionLocal()
     signals = db.query(Signal).all()
     output = io.StringIO()
@@ -206,6 +372,7 @@ HTML_PAGE = """
   <canvas id="chart-canvas" width="600" height="300"></canvas>
   <div id="map"></div>
   <script>
+    // Frontend dashboard logic to fetch, display, and update signal data and statistics.
     document.addEventListener('DOMContentLoaded', () => {
       const startBtn = document.getElementById('start-btn');
       const stopBtn = document.getElementById('stop-btn');
@@ -228,7 +395,7 @@ HTML_PAGE = """
       let heatLayer;
       let totalSignals = 0;
 
-      // Fetch controller location and update UI
+      // Update UI with controller geolocation.
       fetch('/api/location')
         .then(res => res.json())
         .then(loc => {
@@ -242,7 +409,7 @@ HTML_PAGE = """
           }
         });
 
-      // Fetch detected hardware and update UI
+      // Populate detected hardware list.
       fetch('/api/devices')
         .then(res => res.json())
         .then(data => {
@@ -251,6 +418,7 @@ HTML_PAGE = """
 
       fetchData();
 
+      // Start collection button handler.
       startBtn.addEventListener('click', () => {
         fetch('/api/start', { method: 'POST' })
           .then(res => res.json())
@@ -261,6 +429,7 @@ HTML_PAGE = """
           });
       });
 
+      // Stop collection button handler.
       stopBtn.addEventListener('click', () => {
         fetch('/api/stop', { method: 'POST' })
           .then(res => res.json())
@@ -270,6 +439,7 @@ HTML_PAGE = """
           });
       });
 
+      // Reset data button handler.
       resetBtn.addEventListener('click', () => {
         fetch('/api/reset', { method: 'POST' })
           .then(res => res.json())
@@ -280,6 +450,7 @@ HTML_PAGE = """
           });
       });
 
+      // CSV export button handler.
       saveBtn.addEventListener('click', () => {
         fetch('/api/save', { method: 'POST' })
           .then(res => res.blob())
@@ -295,11 +466,13 @@ HTML_PAGE = """
           });
       });
 
+      // Update selected signal type and refresh data.
       signalTypeSelect.addEventListener('change', () => {
         selectedSignalType = signalTypeSelect.value;
         fetchData();
       });
 
+      // Fetch signal data repeatedly from the API.
       function fetchData() {
         fetch('/api/data')
           .then(res => res.json())
@@ -312,6 +485,7 @@ HTML_PAGE = """
           });
       }
 
+      // Update signal statistics: total count and last signal time.
       function updateSignalStats(data) {
         totalSignals = data.length;
         totalSignalsEl.textContent = totalSignals;
@@ -322,6 +496,7 @@ HTML_PAGE = """
         }
       }
 
+      // Build a detailed list of signals.
       function updateSignalList(data) {
         signalList.innerHTML = '';
         const filteredData = data.filter(signal =>
@@ -342,6 +517,7 @@ HTML_PAGE = """
         });
       }
 
+      // Update chart displaying signal counts per type.
       function updateChart(data) {
         const signalCounts = data.reduce((acc, signal) => {
           acc[signal.type] = (acc[signal.type] || 0) + 1;
@@ -376,6 +552,7 @@ HTML_PAGE = """
         }
       }
 
+      // Update map and heatmap with signal locations.
       function updateMap(data) {
         if (!map) {
           fetch('/api/location')
@@ -411,6 +588,7 @@ HTML_PAGE = """
         }
       }
 
+      // Clear UI elements when resetting data.
       function resetUI() {
         totalSignals = 0;
         totalSignalsEl.textContent = '0';
@@ -434,8 +612,16 @@ HTML_PAGE = """
 """
 
 @app.get("/", response_class=HTMLResponse)
-async def index():
+async def index() -> HTMLResponse:
+    """
+    Serves the dynamic HTML dashboard for monitoring the Project PEAK Controller.
+
+    Returns:
+        HTMLResponse: The static HTML content rendering the dashboard,
+                      featuring control buttons, charts, maps, and data feeds.
+    """
     return HTML_PAGE
 
 if __name__ == "__main__":
+    # Start the Controller service using uvicorn. The app listens on all network interfaces at port 8000.
     uvicorn.run("controller:app", host="0.0.0.0", port=8000)

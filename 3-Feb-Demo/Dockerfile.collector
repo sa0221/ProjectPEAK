@@ -1,3 +1,5 @@
+# Dockerfile.collector
+
 FROM python:3.11-slim
 
 # Base dependencies and tools for scanning

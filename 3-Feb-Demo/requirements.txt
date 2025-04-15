@@ -1,3 +1,5 @@
+# requirements.txt
+
 annotated-types==0.7.0
 anyio==4.8.0
 bleak==0.22.3
