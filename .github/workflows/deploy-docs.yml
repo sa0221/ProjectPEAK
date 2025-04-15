@@ -1,9 +1,9 @@
-name: Deploy Documentation
+name: Deploy Documentation to GitHub Pages
 
 on:
   push:
     branches:
-      - main  # or whichever branch you want to trigger the deployment on
+      - main  # or your default branch
 
 jobs:
   deploy:
@@ -20,10 +20,13 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install mkdocs mkdocstrings mkdocs-material
+          pip install mkdocs mkdocstrings[python] mkdocs-material
 
       - name: Build MkDocs Site
-        run: PYTHONPATH=./3-Feb-Demo mkdocs build --config-file 3-Feb-Demo/docs/mkdocs.yml --clean
+        run: |
+          cd 3-Feb-Demo/docs
+          PYTHONPATH=../../ mkdocs build --clean
+        # This builds the static site in 3-Feb-Demo/docs/site
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
