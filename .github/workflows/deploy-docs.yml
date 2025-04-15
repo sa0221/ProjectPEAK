@@ -1,0 +1,32 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main  # or whichever branch you want to trigger the deployment on
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install mkdocs mkdocstrings mkdocs-material
+
+      - name: Build MkDocs Site
+        run: PYTHONPATH=./3-Feb-Demo mkdocs build --config-file 3-Feb-Demo/docs/mkdocs.yml --clean
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: 3-Feb-Demo/docs/site
