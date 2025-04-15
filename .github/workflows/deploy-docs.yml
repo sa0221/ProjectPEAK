@@ -3,7 +3,7 @@ name: Deploy Documentation to GitHub Pages
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main
 
 jobs:
   deploy:
@@ -23,10 +23,11 @@ jobs:
           pip install mkdocs mkdocstrings[python] mkdocs-material
 
       - name: Build MkDocs Site
+        working-directory: 3-Feb-Demo/docs
+        env:
+          PYTHONPATH: ${{ github.workspace }}/3-Feb-Demo
         run: |
-          cd 3-Feb-Demo/docs
-          PYTHONPATH=../../ mkdocs build --clean
-        # This builds the static site in 3-Feb-Demo/docs/site
+          mkdocs build --clean
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
