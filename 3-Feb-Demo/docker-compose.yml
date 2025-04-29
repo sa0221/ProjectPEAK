@@ -1,5 +1,4 @@
-# docker-compose.yml
-
+version: '3.8'
 services:
   controller:
     build:
@@ -10,11 +9,8 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
-    privileged: true
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
-      - SYS_RAWIO
+    volumes:
+      - ./data:/app/data
 
   collector:
     build:
@@ -22,13 +18,14 @@ services:
       dockerfile: Dockerfile.collector
     environment:
       - ROLE=collector
-      - CONTROLLER_URL=http://controller:8000
+      - CONTROLLER_URL=http://127.0.0.1:8000
+      - SCAN_INTERVAL=10
+      - COLLECTION_TIMEOUT=5
     restart: unless-stopped
+    network_mode: host
     privileged: true
-    network_mode: host  # Critical for BLE/RF access on Linux
     devices:
       - "/dev/bus/usb:/dev/bus/usb"
-      - "/dev/serial:/dev/serial"
     volumes:
       - /var/run/dbus:/var/run/dbus
     cap_add:
