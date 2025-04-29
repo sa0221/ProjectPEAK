@@ -5,7 +5,6 @@ Controller Service Module for Project PEAK
 FastAPI service that centralizes control, data ingestion, and storage (SQLite)
 for live RF signal collections, and serves a Tailwind/Chart.js/Leaflet dashboard at "/".
 """
-
 import requests, csv, io, re, uvicorn
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -16,9 +15,9 @@ app = FastAPI(title="Project PEAK Controller")
 
 # ─── Database Setup ─────────────────────────────────────────────────────────────
 DATABASE_URL = "sqlite:///./data/signals.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine       = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
-Base = declarative_base()
+Base         = declarative_base()
 
 class Signal(Base):
     __tablename__ = "signals"
@@ -32,26 +31,26 @@ class Signal(Base):
     longitude       = Column(Float)
     additional_info = Column(String)
 
-# ensure our table exists
+# create table if missing
 Base.metadata.create_all(bind=engine)
 
-# ─── In-memory State ────────────────────────────────────────────────────────────
+# ─── In-Memory State ────────────────────────────────────────────────────────────
 collection_active: bool    = True
 devices_info:     list[str] = []
 
 def get_controller_location() -> tuple[float, float]:
-    """Try external IP geolocation, else Denver fallback."""
+    """Fetch geolocation or fallback to Denver."""
     try:
-        r = requests.get("http://ip-api.com/json/", timeout=2).json()
-        if r.get("status") == "success":
-            return r["lat"], r["lon"]
+        resp = requests.get("http://ip-api.com/json/", timeout=2).json()
+        if resp.get("status") == "success":
+            return resp["lat"], resp["lon"]
     except:
         pass
     return 39.7392, -104.9903
 
 CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
 
-# ─── API Endpoints ─────────────────────────────────────────────────────────────
+# ─── API ────────────────────────────────────────────────────────────────────────
 @app.get("/api/location")
 async def api_location():
     return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
@@ -87,17 +86,16 @@ async def collect_signals(signals: list[dict] = Body(...)):
     db = SessionLocal()
     ctrl = re.compile(r'[\x00-\x1F\x7F]')
     for s in signals:
-        info = s.get("additional_info", "")
-        clean = ctrl.sub("", info)
+        info_clean = ctrl.sub("", s.get("additional_info", ""))
         db.add(Signal(
-            timestamp=s.get("timestamp",""),
-            type=s.get("type",""),
-            name_address=s.get("name_address",""),
-            signal_strength=s.get("signal_strength",""),
-            frequency=s.get("frequency",""),
-            latitude=s.get("latitude"),
-            longitude=s.get("longitude"),
-            additional_info=clean
+            timestamp       = s.get("timestamp",""),
+            type            = s.get("type",""),
+            name_address    = s.get("name_address",""),
+            signal_strength = s.get("signal_strength",""),
+            frequency       = s.get("frequency",""),
+            latitude        = s.get("latitude"),
+            longitude       = s.get("longitude"),
+            additional_info = info_clean
         ))
     db.commit()
     db.close()
@@ -157,7 +155,7 @@ HTML_PAGE = """
   <meta charset="UTF-8">
   <title>Project PEAK Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -182,7 +180,7 @@ HTML_PAGE = """
       <button id="stop-btn"  class="btn btn-danger">Stop</button>
     </div>
     <div class="card text-center">
-      <button id="reset-btn" class="btn btn-accent mr-2">Reset DB</button>
+      <button id="reset-btn" class="btn btn-accent mr-2">Clear Data</button>
       <button id="save-btn"  class="btn btn-primary">Export CSV</button>
     </div>
     <div class="card text-center">
@@ -198,26 +196,35 @@ HTML_PAGE = """
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-    <div class="card"><h2 class="font-semibold">Total Signals</h2><p id="total-signals" class="text-2xl mt-2">0</p></div>
-    <div class="card"><h2 class="font-semibold">Last Timestamp</h2><p id="last-time" class="text-2xl mt-2">N/A</p></div>
-    <div class="card"><h2 class="font-semibold">Controller Loc</h2><p id="ctrl-loc" class="mt-2">…</p></div>
-    <div class="card"><h2 class="font-semibold">Detected HW</h2><p id="hw-list" class="mt-2">…</p></div>
+    <div class="card text-center">
+      <h2 class="font-semibold">Total Signals</h2>
+      <p id="total-signals" class="text-2xl mt-2">0</p>
+    </div>
+    <div class="card text-center">
+      <h2 class="font-semibold">Last Timestamp</h2>
+      <p id="last-time" class="text-2xl mt-2">N/A</p>
+    </div>
+    <div class="card text-center">
+      <h2 class="font-semibold">Controller Loc</h2>
+      <p id="ctrl-loc" class="mt-2">…</p>
+    </div>
+    <div class="card text-center">
+      <h2 class="font-semibold">Detected HW</h2>
+      <p id="hw-list" class="mt-2">…</p>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="card">
-      <canvas id="chart" height="200"></canvas>
-    </div>
-    <div class="card">
-      <div id="map" style="height:300px;"></div>
-    </div>
+    <div class="card"><canvas id="chart" height="200"></canvas></div>
+    <div class="card"><div id="map" style="height:300px;"></div></div>
   </div>
 
   <div class="card overflow-auto" style="max-height:300px;">
     <table class="table">
       <thead>
         <tr>
-          <th>Time</th><th>Type</th><th>Name/Addr</th><th>RSSI</th><th>Freq</th><th>Info</th><th>Lat</th><th>Lon</th>
+          <th>Time</th><th>Type</th><th>Name/Addr</th><th>RSSI</th>
+          <th>Freq</th><th>Info</th><th>Lat</th><th>Lon</th>
         </tr>
       </thead>
       <tbody id="table-body"></tbody>
@@ -225,7 +232,7 @@ HTML_PAGE = """
   </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', ()=>{
   const startBtn = document.getElementById('start-btn'),
         stopBtn  = document.getElementById('stop-btn'),
         resetBtn = document.getElementById('reset-btn'),
@@ -236,33 +243,30 @@ document.addEventListener('DOMContentLoaded', () => {
         locEl    = document.getElementById('ctrl-loc'),
         hwEl     = document.getElementById('hw-list'),
         tbody    = document.getElementById('table-body'),
-        chartCtx = document.getElementById('chart').getContext('2d'),
+        ctx      = document.getElementById('chart').getContext('2d'),
         mapDiv   = document.getElementById('map');
-
   let chart, map, heat;
 
-  // init map
   fetch('/api/location').then(r=>r.json()).then(loc=>{
     locEl.textContent = `${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`;
     map = L.map(mapDiv).setView([loc.lat, loc.lon], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'© OpenStreetMap'
+      attribution:'© OpenStreetMap Contributors'
     }).addTo(map);
     heat = L.heatLayer([], {radius:25,blur:15}).addTo(map);
   });
 
-  // load hardware
   fetch('/api/devices').then(r=>r.json()).then(d=>{
     hwEl.textContent = d.devices.join(', ');
   });
 
-  startBtn.onclick = () => fetch('/api/start',{method:'POST'}).then(_=>load());
-  stopBtn.onclick  = () => fetch('/api/stop',{ method:'POST' });
-  resetBtn.onclick = () => fetch('/api/reset',{method:'POST'}).then(_=>load());
-  saveBtn.onclick  = () => fetch('/api/save',{method:'POST'})
+  startBtn.onclick = ()=> fetch('/api/start',{method:'POST'}).then(_=>load());
+  stopBtn.onclick  = ()=> fetch('/api/stop',{ method:'POST' });
+  resetBtn.onclick = ()=> fetch('/api/reset',{method:'POST'}).then(_=>load());
+  saveBtn.onclick  = ()=> fetch('/api/save',{method:'POST'})
     .then(r=>r.blob()).then(b=>{
       const u=URL.createObjectURL(b),a=document.createElement('a');
-      a.href=u;a.download='signals.csv';document.body.append(a);a.click();a.remove();
+      a.href=u; a.download='signals.csv'; document.body.append(a); a.click(); a.remove();
     });
 
   filter.onchange = load;
@@ -295,21 +299,26 @@ document.addEventListener('DOMContentLoaded', () => {
       filtered.forEach(s=>counts[s.type]=(counts[s.type]||0)+1);
       const labels = Object.keys(counts), vals = Object.values(counts);
       if (!chart) {
-        chart = new Chart(chartCtx, {
+        chart = new Chart(ctx, {
           type:'bar',
           data:{labels, datasets:[{
-            label:'Count', data:vals, backgroundColor:'rgba(59,130,246,0.7)'
+            label:'Count', data:vals,
+            backgroundColor:'rgba(59,130,246,0.7)'
           }]},
           options:{scales:{y:{beginAtZero:true}}}
         });
       } else {
-        chart.data.labels=labels; chart.data.datasets[0].data=vals; chart.update();
+        chart.data.labels=labels;
+        chart.data.datasets[0].data=vals;
+        chart.update();
       }
 
       // heatmap
-      heat.setLatLngs(filtered
-        .filter(s=>s.latitude&&s.longitude)
-        .map(s=>[s.latitude,s.longitude,0.5]));
+      heat.setLatLngs(
+        filtered
+          .filter(s=>s.latitude && s.longitude)
+          .map(s=>[s.latitude, s.longitude, 0.5])
+      );
     });
   }
 
@@ -325,6 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
 async def index():
     return HTML_PAGE
 
-# ─── Server ────────────────────────────────────────────────────────────────────
+# ─── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
