@@ -1,9 +1,52 @@
 #!/usr/bin/env python3
 """
-Collector Service Module for Project PEAK
+# Collector Service Module
 
-Asynchronous RF signal collector (BLE, ADS-B, Wi-Fi, HackRF spectrum) that posts into the Controller API.
-It geolocates the collector via IP lookup (http://ip-api.com/json/) and tags each signal with latitude/longitude.
+The Collector Service is a core component of Project PEAK that performs asynchronous RF signal collection
+across multiple protocols and frequencies. It acts as a data gathering agent that communicates with the
+Controller service to store and visualize the collected signals.
+
+## Features
+
+- Multi-protocol signal collection (BLE, ADS-B, Wi-Fi, HackRF spectrum)
+- Automatic geolocation via IP lookup
+- Asynchronous operation for efficient scanning
+- Automatic hardware detection and registration
+- Configurable scan intervals and timeouts
+
+## Configuration
+
+The service can be configured through environment variables:
+
+- `CONTROLLER_URL`: URL of the Controller service (default: "http://127.0.0.1:8000")
+- `SCAN_INTERVAL`: Time between scan cycles in seconds (default: 10)
+- `COLLECTION_TIMEOUT`: Maximum time to wait for each scan in seconds (default: 5)
+
+## Hardware Requirements
+
+The service automatically detects and uses available RF hardware:
+
+- HackRF One for spectrum analysis
+- RTL-SDR dongle for ADS-B reception
+- Bluetooth adapter for BLE scanning
+- Wi-Fi interface for probe request capture
+
+## Signal Format
+
+All collected signals follow this JSON structure:
+
+```json
+{
+    "timestamp": "ISO-8601 datetime",
+    "type": "Signal type (Bluetooth/ADS-B/Wi-Fi/Spectrum)",
+    "name_address": "Device identifier",
+    "signal_strength": "Signal strength in dBm or N/A",
+    "frequency": "Operating frequency",
+    "additional_info": "Protocol-specific details",
+    "latitude": "Collector latitude",
+    "longitude": "Collector longitude"
+}
+```
 """
 import asyncio
 import os
@@ -30,6 +73,16 @@ except Exception:
 
 # ─── Controller Status Endpoint ─────────────────────────────────────────────────
 async def get_collection_status() -> bool:
+    """
+    Check if signal collection is currently active.
+
+    Returns:
+        bool: True if collection is active, False otherwise.
+
+    Note:
+        This function queries the Controller service's collection status endpoint.
+        If the Controller is unreachable, returns False to prevent unnecessary scanning.
+    """
     try:
         async with httpx.AsyncClient() as client:
             r = await client.get(f"{CONTROLLER_URL}/api/collection-status", timeout=5)
@@ -40,7 +93,17 @@ async def get_collection_status() -> bool:
 # ─── Scanning Routines ──────────────────────────────────────────────────────────
 async def scan_spectrum() -> list[dict]:
     """
-    HackRF sweep 100 MHz–6 GHz via hackrf_sweep → /tmp/sweep.csv
+    Perform a spectrum sweep using HackRF One.
+
+    This function executes hackrf_sweep to scan frequencies from 100 MHz to 6 GHz,
+    saving the results to a temporary CSV file and processing them into signal records.
+
+    Returns:
+        list[dict]: List of spectrum signal records, each containing frequency and amplitude data.
+
+    Note:
+        Requires hackrf_sweep to be installed and HackRF One to be connected.
+        The sweep uses a 30 dB gain setting for optimal signal detection.
     """
     try:
         csvf = "/tmp/sweep.csv"
@@ -73,7 +136,17 @@ async def scan_spectrum() -> list[dict]:
 
 async def scan_bluetooth() -> list[dict]:
     """
-    BLE scan via BleakScanner
+    Perform a Bluetooth Low Energy (BLE) scan using BleakScanner.
+
+    This function discovers nearby BLE devices and records their presence.
+    Each device is recorded with its name (if available) and MAC address.
+
+    Returns:
+        list[dict]: List of Bluetooth signal records, each containing device information.
+
+    Note:
+        Requires a Bluetooth adapter and the bleak library.
+        Signal strength is estimated at -70 dBm as BLE devices typically operate in this range.
     """
     try:
         devices = await BleakScanner.discover(timeout=COLLECTION_TIMEOUT)
@@ -93,7 +166,17 @@ async def scan_bluetooth() -> list[dict]:
 
 async def capture_adsb() -> list[dict]:
     """
-    ADS-B capture via dump1090-mutability
+    Capture ADS-B signals using dump1090-mutability.
+
+    This function runs dump1090-mutability in interactive mode to capture
+    aircraft position and identification data from ADS-B broadcasts.
+
+    Returns:
+        list[dict]: List of ADS-B signal records, each containing aircraft information.
+
+    Note:
+        Requires dump1090-mutability to be installed and an RTL-SDR dongle.
+        ADS-B operates on 1090 MHz and is used by aircraft to broadcast their position.
     """
     try:
         p = await asyncio.create_subprocess_exec(
@@ -125,7 +208,17 @@ async def capture_adsb() -> list[dict]:
 
 async def capture_wifi() -> list[dict]:
     """
-    Wi-Fi probe‐request capture via tcpdump
+    Capture Wi-Fi probe requests using tcpdump.
+
+    This function monitors the wireless interface for probe requests,
+    which are broadcast by devices searching for known networks.
+
+    Returns:
+        list[dict]: List of Wi-Fi signal records, each containing probe request information.
+
+    Note:
+        Requires tcpdump to be installed and a wireless interface.
+        Automatically detects the first available wireless interface if wlan0 is not present.
     """
     iface = "wlan0"
     if not os.path.exists(f"/sys/class/net/{iface}"):
@@ -154,6 +247,18 @@ async def capture_wifi() -> list[dict]:
 
 # ─── Main Collection Loop ───────────────────────────────────────────────────────
 async def collect_and_send():
+    """
+    Main collection loop that coordinates all scanning activities.
+
+    This function:
+    1. Detects available RF hardware
+    2. Registers detected hardware with the Controller
+    3. Continuously performs scans when collection is active
+    4. Sends collected signals to the Controller
+
+    The function runs indefinitely, checking the collection status
+    before each scan cycle and sleeping for SCAN_INTERVAL seconds between cycles.
+    """
     # hardware detection
     hackrf = rtlsdr = False
     try:

@@ -1,9 +1,62 @@
 #!/usr/bin/env python3
 """
-Controller Service Module for Project PEAK
+# Controller Service Module
 
-FastAPI service that centralizes control, data ingestion, and storage (SQLite)
-for live RF signal collections, and serves a Tailwind/Chart.js/Leaflet dashboard at "/".
+The Controller Service is the central hub of Project PEAK, providing a FastAPI-based web interface
+for managing RF signal collection, storage, and visualization. It coordinates multiple collectors
+and provides a real-time dashboard for monitoring RF activity.
+
+## Features
+
+- RESTful API for signal collection and management
+- SQLite database for signal storage
+- Real-time dashboard with interactive visualizations
+- Support for multiple collector instances
+- Data export capabilities
+- Automatic geolocation
+
+## API Endpoints
+
+### Collection Control
+- `GET /api/collection-status` - Check if collection is active
+- `POST /api/start` - Start signal collection
+- `POST /api/stop` - Stop signal collection
+- `POST /api/reset` - Clear all collected data
+
+### Data Management
+- `GET /api/data` - Retrieve all collected signals
+- `POST /api/collect` - Submit new signals from collectors
+- `POST /api/save` - Export data as CSV
+- `GET /api/location` - Get controller's geolocation
+- `GET /api/devices` - List detected hardware
+- `POST /api/devices` - Update hardware information
+
+## Dashboard
+
+The dashboard (`/`) provides:
+- Real-time signal visualization
+- Interactive map with heatmap overlay
+- Signal type filtering
+- Data export controls
+- Hardware status monitoring
+
+## Database Schema
+
+The SQLite database (`signals.db`) uses the following schema:
+
+```sql
+CREATE TABLE signals (
+    id INTEGER PRIMARY KEY,
+    timestamp TEXT,
+    type TEXT,
+    name_address TEXT,
+    signal_strength TEXT,
+    frequency TEXT,
+    latitude FLOAT,
+    longitude FLOAT,
+    additional_info TEXT
+);
+```
 """
 import requests, csv, io, re, uvicorn
 from fastapi import FastAPI, Body
@@ -20,6 +73,20 @@ SessionLocal = sessionmaker(bind=engine)
 Base         = declarative_base()
 
 class Signal(Base):
+    """
+    SQLAlchemy model for storing RF signals.
+
+    Attributes:
+        id (int): Primary key
+        timestamp (str): ISO-8601 timestamp of signal detection
+        type (str): Signal type (Bluetooth/ADS-B/Wi-Fi/Spectrum)
+        name_address (str): Device identifier or address
+        signal_strength (str): Signal strength in dBm or N/A
+        frequency (str): Operating frequency
+        latitude (float): Detection latitude
+        longitude (float): Detection longitude
+        additional_info (str): Protocol-specific details
+    """
     __tablename__ = "signals"
     id              = Column(Integer, primary_key=True, index=True)
     timestamp       = Column(String)
@@ -39,7 +106,16 @@ collection_active: bool    = True
 devices_info:     list[str] = []
 
 def get_controller_location() -> tuple[float, float]:
-    """Fetch geolocation or fallback to Denver."""
+    """
+    Fetch the controller's geolocation via IP lookup.
+
+    Returns:
+        tuple[float, float]: (latitude, longitude) of the controller.
+        Falls back to Denver coordinates (39.7392, -104.9903) if lookup fails.
+
+    Note:
+        Uses ip-api.com for geolocation. The free tier has rate limits.
+    """
     try:
         resp = requests.get("http://ip-api.com/json/", timeout=2).json()
         if resp.get("status") == "success":
@@ -53,36 +129,87 @@ CONTROLLER_LAT, CONTROLLER_LON = get_controller_location()
 # ─── API ────────────────────────────────────────────────────────────────────────
 @app.get("/api/location")
 async def api_location():
+    """
+    Get the controller's current geolocation.
+
+    Returns:
+        dict: Contains latitude and longitude of the controller.
+    """
     return {"lat": CONTROLLER_LAT, "lon": CONTROLLER_LON}
 
 @app.get("/api/collection-status")
 async def api_collection_status():
+    """
+    Check if signal collection is currently active.
+
+    Returns:
+        dict: Contains the current collection status.
+    """
     return {"active": collection_active}
 
 @app.post("/api/start")
 async def start_collection():
+    """
+    Start the signal collection process.
+
+    Returns:
+        dict: Confirmation of collection start.
+    """
     global collection_active
     collection_active = True
     return {"status": "collection started"}
 
 @app.post("/api/stop")
 async def stop_collection():
+    """
+    Stop the signal collection process.
+
+    Returns:
+        dict: Confirmation of collection stop.
+    """
     global collection_active
     collection_active = False
     return {"status": "collection stopped"}
 
 @app.post("/api/devices")
 async def update_devices(dev: dict = Body(...)):
+    """
+    Update the list of detected RF hardware.
+
+    Args:
+        dev (dict): Contains a list of detected devices.
+
+    Returns:
+        dict: Confirmation of device list update.
+    """
     global devices_info
     devices_info = dev.get("devices", [])
     return {"status": "devices updated"}
 
 @app.get("/api/devices")
 async def get_devices():
+    """
+    Get the current list of detected RF hardware.
+
+    Returns:
+        dict: Contains the list of detected devices.
+    """
     return {"devices": devices_info}
 
 @app.post("/api/collect")
 async def collect_signals(signals: list[dict] = Body(...)):
+    """
+    Store new signals from collectors in the database.
+
+    Args:
+        signals (list[dict]): List of signal records to store.
+
+    Returns:
+        dict: Contains status and number of signals received.
+
+    Note:
+        Cleans control characters from additional_info field before storage.
+    """
     db = SessionLocal()
     ctrl = re.compile(r'[\x00-\x1F\x7F]')
     for s in signals:
@@ -103,6 +230,12 @@ async def collect_signals(signals: list[dict] = Body(...)):
 
 @app.get("/api/data")
 async def get_data():
+    """
+    Retrieve all stored signals from the database.
+
+    Returns:
+        list[dict]: List of all signal records.
+    """
     db = SessionLocal()
     rows = db.query(Signal).all()
     db.close()
@@ -119,6 +252,12 @@ async def get_data():
 
 @app.post("/api/reset")
 async def reset_data():
+    """
+    Clear all stored signals from the database.
+
+    Returns:
+        dict: Confirmation of data reset.
+    """
     db = SessionLocal()
     db.query(Signal).delete()
     db.commit()
@@ -127,6 +266,15 @@ async def reset_data():
 
 @app.post("/api/save")
 async def save_data():
+    """
+    Export all stored signals as a CSV file.
+
+    Returns:
+        StreamingResponse: CSV file download containing all signals.
+
+    Note:
+        The CSV includes all signal fields in a human-readable format.
+    """
     db = SessionLocal()
     rows = db.query(Signal).all()
     db.close()
@@ -249,81 +397,97 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   fetch('/api/location').then(r=>r.json()).then(loc=>{
     locEl.textContent = `${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}`;
-    map = L.map(mapDiv).setView([loc.lat, loc.lon], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'© OpenStreetMap Contributors'
+    map = L.map(mapDiv).setView([loc.lat, loc.lon], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-    heat = L.heatLayer([], {radius:25,blur:15}).addTo(map);
+    heat = L.heatLayer([], {radius: 25}).addTo(map);
   });
 
   fetch('/api/devices').then(r=>r.json()).then(d=>{
-    hwEl.textContent = d.devices.join(', ');
+    hwEl.textContent = d.devices.join(", ");
   });
 
-  startBtn.onclick = ()=> fetch('/api/start',{method:'POST'}).then(_=>load());
-  stopBtn.onclick  = ()=> fetch('/api/stop',{ method:'POST' });
-  resetBtn.onclick = ()=> fetch('/api/reset',{method:'POST'}).then(_=>load());
-  saveBtn.onclick  = ()=> fetch('/api/save',{method:'POST'})
-    .then(r=>r.blob()).then(b=>{
-      const u=URL.createObjectURL(b),a=document.createElement('a');
-      a.href=u; a.download='signals.csv'; document.body.append(a); a.click(); a.remove();
-    });
-
-  filter.onchange = load;
-  function load(){
-    fetch('/api/data').then(r=>r.json()).then(data=>{
-      const f = filter.value;
-      const filtered = data.filter(s=>f==='all'||s.type===f);
-      totalEl.textContent = filtered.length;
-      lastEl.textContent = filtered.length ? filtered[filtered.length-1].timestamp : 'N/A';
-
-      // table
-      tbody.innerHTML = '';
-      filtered.forEach(s=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${s.timestamp}</td>
-          <td>${s.type}</td>
-          <td>${s.name_address}</td>
-          <td>${s.signal_strength}</td>
-          <td>${s.frequency}</td>
-          <td>${s.additional_info}</td>
-          <td>${s.latitude||''}</td>
-          <td>${s.longitude||''}</td>
-        `;
-        tbody.append(tr);
-      });
-
-      // chart
-      const counts = {};
-      filtered.forEach(s=>counts[s.type]=(counts[s.type]||0)+1);
-      const labels = Object.keys(counts), vals = Object.values(counts);
-      if (!chart) {
-        chart = new Chart(ctx, {
-          type:'bar',
-          data:{labels, datasets:[{
-            label:'Count', data:vals,
-            backgroundColor:'rgba(59,130,246,0.7)'
-          }]},
-          options:{scales:{y:{beginAtZero:true}}}
-        });
-      } else {
-        chart.data.labels=labels;
-        chart.data.datasets[0].data=vals;
-        chart.update();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Signals',
+        data: [],
+        borderColor: '#3b82f6',
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#334155' },
+          ticks: { color: '#94a3b8' }
+        },
+        x: {
+          grid: { color: '#334155' },
+          ticks: { color: '#94a3b8' }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#94a3b8' }
+        }
       }
+    }
+  });
 
-      // heatmap
-      heat.setLatLngs(
-        filtered
-          .filter(s=>s.latitude && s.longitude)
-          .map(s=>[s.latitude, s.longitude, 0.5])
-      );
-    });
+  function updateUI(data) {
+    const filtered = filter.value === "all" ? data : data.filter(d => d.type === filter.value);
+    totalEl.textContent = filtered.length;
+    if (filtered.length > 0) {
+      lastEl.textContent = new Date(filtered[0].timestamp).toLocaleString();
+    }
+
+    // update chart
+    const times = filtered.map(d => new Date(d.timestamp).toLocaleTimeString());
+    const counts = filtered.map(d => 1);
+    chart.data.labels = times;
+    chart.data.datasets[0].data = counts;
+    chart.update();
+
+    // update map
+    const points = filtered
+      .filter(d => d.latitude && d.longitude)
+      .map(d => [d.latitude, d.longitude, 1]);
+    heat.setLatLngs(points);
+
+    // update table
+    tbody.innerHTML = filtered.map(d => `
+      <tr>
+        <td>${new Date(d.timestamp).toLocaleString()}</td>
+        <td>${d.type}</td>
+        <td>${d.name_address}</td>
+        <td>${d.signal_strength}</td>
+        <td>${d.frequency}</td>
+        <td>${d.additional_info}</td>
+        <td>${d.latitude?.toFixed(4) || 'N/A'}</td>
+        <td>${d.longitude?.toFixed(4) || 'N/A'}</td>
+      </tr>
+    `).join('');
   }
 
-  load();
-  setInterval(load, 5000);
+  function refresh() {
+    fetch('/api/data').then(r=>r.json()).then(updateUI);
+  }
+
+  startBtn.onclick = () => fetch('/api/start').then(refresh);
+  stopBtn.onclick = () => fetch('/api/stop');
+  resetBtn.onclick = () => fetch('/api/reset').then(refresh);
+  saveBtn.onclick = () => window.location.href = '/api/save';
+  filter.onchange = refresh;
+
+  refresh();
+  setInterval(refresh, 5000);
 });
 </script>
 </body>
@@ -332,6 +496,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
+    """
+    Serve the main dashboard interface.
+
+    Returns:
+        HTMLResponse: The dashboard HTML page.
+
+    Note:
+        The dashboard provides real-time visualization of collected signals
+        using Chart.js for graphs and Leaflet for maps.
+    """
     return HTML_PAGE
 
 # ─── Run ────────────────────────────────────────────────────────────────────────
